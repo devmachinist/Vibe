@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
-    <Version>8.0.0-rc.6-alpha</Version>
+    <Version>8.0.0-rc.7-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -50,10 +50,11 @@
   </ItemGroup>
   <ItemGroup>
   <!-- Include Vibe.dll in the buildTransitive folder -->
-  <None Include="$(OutputPath)*.dll" Pack="true" PackagePath="build/" />
+  <EmbeddedResource Include="$(OutputPath)*.dll" Pack="true" PackagePath="build/" />
   
   <!-- Include CSX.targets in the buildTransitive folder -->
-  <None Include="Build\CSX.targets" Pack="true" PackagePath="build/" />
+  <EmbeddedResource Include="Build\CSX.props" Pack="true" PackagePath="build/" />
+  <EmbeddedResource Include="Build\CSX.targets" Pack="true" PackagePath="build/" />
 </ItemGroup>
   <PropertyGroup>
     <UsingMicrosoftNETSdk>true</UsingMicrosoftNETSdk>
