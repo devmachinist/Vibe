@@ -74,7 +74,6 @@ namespace Vibe
 
         public CsxNode(string tagName = "div", dynamic? attributes = null)
         {
-            var node = new CsxNode();
             SetParameters(attributes);
             TagName = tagName;
             this["TagName"] = TagName;
