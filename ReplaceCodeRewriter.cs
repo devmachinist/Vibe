@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
 using System.Text.RegularExpressions;
-namespace Xavier
+namespace Vibe
 {
     public static partial class RW
     {
@@ -28,7 +28,7 @@ namespace Xavier
                     "using System.Text.Json;"+
                     "using System.Text.Json.Serialization;"+
                 $"namespace {assembly.GetName().Name} {{" +
-                    $" public partial class {name} : XavierNode{{";
+                    $" public partial class {name} : CsxNode{{";
 
                             codeBlock = codeBlock.Replace("}x", " } catch(Exception ex){" +
                                 "Debug.WriteLine(ex);" +
@@ -53,12 +53,12 @@ namespace Xavier
             }
 
 
-            public static string Visit(object xavier, SyntaxNode node, Assembly assembly, Memory memory)
+            public static string Visit(object xavier, SyntaxNode node, Assembly assembly, IXavierMemory memory)
             {
             try
             {
 
-                var runner = memory.XavierNodes.First(x => (x as XavierNode).Name == (xavier as XavierNode).Name);
+                var runner = memory.CsxNodes.First(x => (x as CsxNode).Name == (xavier as CsxNode).Name);
                 
                 
 
@@ -77,7 +77,7 @@ namespace Xavier
 
                         foreach (var match in matches)
                         {
-                            var theseProps = (runner as XavierNode).ExtractVariableList(runner, assembly);
+                            var theseProps = (runner as CsxNode).ExtractVariableList(runner, assembly);
 
                             codeBlock = match.ToString();
 
@@ -97,16 +97,16 @@ namespace Xavier
                                 "using System.ComponentModel;" +
                                 $"using {assembly.GetName().Name};"+
                                 $"namespace {assembly.GetName().Name} {{"+
-                                $"public class {(xavier as XavierNode).Name}_X : {(xavier as XavierNode).Name} {{ {theseProps}"+
+                                $"public class {(xavier as CsxNode).Name}_X : {(xavier as CsxNode).Name} {{ {theseProps}"+
                                 $" public string Execute(){{ " +
                                 " try{" +
                                 " ");
                             codeBlock = codeBlock.Replace("}x", " } catch(Exception ex){" +
-                                "Debug.WriteLine(ex.Message);" +
-                                "return ex.Message;" +
+                                "Debug.WriteLine(ex.ToString());" +
+                                "return ex.ToString();" +
                                 "}" +
                                 " return \"\";} " +
-                                $"public static string Exe(string[] args){{ {(xavier as XavierNode).Name}_X  xav = new {(xavier as XavierNode).Name}_X(); " +
+                                $"public static string Exe(string[] args){{ {(xavier as CsxNode).Name}_X  xav = new {(xavier as CsxNode).Name}_X(); " +
                                 "string s = xav.Execute();" +
                                 "return s;" +
                                 " } " +
@@ -127,7 +127,7 @@ namespace Xavier
                 }
                 return "";
             }
-            catch (Exception Ex) { return Ex.Message; };
+            catch (Exception ex) { return ex.ToString(); };
             }
         }
     }

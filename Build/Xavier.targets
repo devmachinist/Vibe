@@ -1,0 +1,24 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Define the path to Xavier.dll -->
+    <XavierLocalDllPath>C:\Users\x\source\repos\Xavier\bin\$(Configuration)\net8.0\Xavier.dll</XavierLocalDllPath>
+  </PropertyGroup>
+
+  <!-- Register the CompileCsxTask from Xavier.dll -->
+  <UsingTask TaskName="Xavier.Build.CompileCsxTask"
+             AssemblyFile="$(XavierLocalDllPath)" />
+  <Target Name="CompileCsxFiles" BeforeTargets="CoreCompile">
+    <!-- Call the CompileCsxTask -->
+    <CompileCsxTask
+        ProjectDirectory="$(ProjectDir)">
+      <Output TaskParameter="GeneratedSyntaxTrees" ItemName="CsxSyntaxTrees" />
+    </CompileCsxTask>
+
+    <!-- Add the generated SyntaxTrees to the final compilation -->
+    <ItemGroup>
+      <Compile Include="@(CsxSyntaxTrees)" />
+    </ItemGroup>
+
+    <Message Text="Injected CSX SyntaxTrees into the project build." Importance="high" />
+  </Target>
+</Project>

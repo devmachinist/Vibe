@@ -8,13 +8,13 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Buffers;
-using NuGet.Protocol;
+using Swan;
 
-namespace Xavier
+namespace Vibe
 {
     public static partial class RW
     {
-        // Add the nested XavierNode to the parent one.
+        // Add the nested CsxNode to the parent one.
         //Merge the two types and string of c# script
         public static SyntaxList<MemberDeclarationSyntax> MergeTypesAndScript(Type type1, Type type2, string cSharpScript)
         {
@@ -62,7 +62,7 @@ namespace Xavier
         {
             return node;
         }
-        public static SyntaxNode CreateType(string typeName, string baseType = "XavierNode")
+        public static SyntaxNode CreateType(string typeName, string baseType = "CsxNode")
         {
 
             // Create a new class named TypeName
@@ -110,9 +110,9 @@ namespace Xavier
                 }
             });
         }
-        public static string WriteVirtualFile(object Xavier, string input,Assembly assembly, Memory memory)
+        public static string WriteVirtualFile(object Xavier, string input,Assembly assembly, IXavierMemory memory)
         {
-            var source = (Xavier as XavierNode).ExtractAtLast(EvaluateCSharpCode(Xavier, EvaluateJavaScript(input),assembly, memory));
+            var source = (Xavier as CsxNode).ExtractAtLast(EvaluateCSharpCode(Xavier, EvaluateJavaScript(input), assembly, memory));
             source = source.Replace("-{{", "{{");
             source = source.Replace("}}-", "}}");
             
@@ -123,7 +123,6 @@ namespace Xavier
                 return source;
             }
             return source;
-
         }
         public static async Task<bool> WriteFile(object xavier, string input, string destination, Assembly assembly, Memory memory)
         {
@@ -146,13 +145,105 @@ namespace Xavier
                 return false;
             }
         }
-        public static string ExtractClassBody(string classString)
+        public static string? ExtractClassBody(string input)
         {
-            int openIndex = classString.IndexOf("@class{");
-            int closedIndex = classString.LastIndexOf('}');
-            string extractedBody = classString.Substring(openIndex + 1, closedIndex - openIndex - 1);
-            
-            return extractedBody;
+            int startIndex = input.IndexOf("@class{");
+            if (startIndex == -1)
+            {
+                return null; // No @class{ found
+            }
+
+            startIndex += "@class{".Length;
+            int currentIndex = startIndex;
+            int braceCount = 1;
+            StringBuilder result = new StringBuilder();
+            bool inString = false;
+            char stringDelimiter = '\0';
+            bool inSingleLineComment = false;
+            bool inMultiLineComment = false;
+
+            while (currentIndex < input.Length)
+            {
+                char currentChar = input[currentIndex];
+                char nextChar = currentIndex + 1 < input.Length ? input[currentIndex + 1] : '\0';
+
+                // Handle single-line comments
+                if (inSingleLineComment)
+                {
+                    if (currentChar == '\n')
+                    {
+                        inSingleLineComment = false;
+                    }
+                    result.Append(currentChar);
+                }
+                // Handle multi-line comments
+                else if (inMultiLineComment)
+                {
+                    if (currentChar == '*' && nextChar == '/')
+                    {
+                        inMultiLineComment = false;
+                        result.Append(currentChar).Append(nextChar);
+                        currentIndex++; // Skip the next char
+                    }
+                    else
+                    {
+                        result.Append(currentChar);
+                    }
+                }
+                // Handle strings
+                else if (inString)
+                {
+                    result.Append(currentChar);
+                    if (currentChar == stringDelimiter && input[currentIndex - 1] != '\\') // End of string
+                    {
+                        inString = false;
+                    }
+                }
+                // Detect the start of a string
+                else if (currentChar == '\'' || currentChar == '"' || currentChar == '`')
+                {
+                    inString = true;
+                    stringDelimiter = currentChar;
+                    result.Append(currentChar);
+                }
+                // Detect single-line comment start
+                else if (currentChar == '/' && nextChar == '/')
+                {
+                    inSingleLineComment = true;
+                    result.Append(currentChar).Append(nextChar);
+                    currentIndex++; // Skip the next char
+                }
+                // Detect multi-line comment start
+                else if (currentChar == '/' && nextChar == '*')
+                {
+                    inMultiLineComment = true;
+                    result.Append(currentChar).Append(nextChar);
+                    currentIndex++; // Skip the next char
+                }
+                // Handle braces
+                else if (currentChar == '{')
+                {
+                    braceCount++;
+                    result.Append(currentChar);
+                }
+                else if (currentChar == '}')
+                {
+                    braceCount--;
+                    if (braceCount == 0)
+                    {
+                        return result.ToString();
+                    }
+                    result.Append(currentChar);
+                }
+                else
+                {
+                    result.Append(currentChar);
+                }
+
+                currentIndex++;
+            }
+
+            throw new InvalidOperationException("Unmatched braces in the @class{ block.");
         }
         public static string EvaluateHTML(string input)
         {
@@ -189,7 +280,7 @@ namespace Xavier
             }
             return input;
         }
-        public static string EvaluateCSharpCode(object xavier, string source, Assembly assembly, Memory memory)
+        public static string EvaluateCSharpCode(object xavier, string source, Assembly assembly, IXavierMemory memory)
         {
             try
             {
@@ -217,7 +308,7 @@ namespace Xavier
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.ToString());
             }
 
             return source;
@@ -246,7 +337,7 @@ namespace Xavier
             return source;
         }
 
-        public static string CreateXavierNode(string code)
+        public static string CreateCsxNode(string code)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
             string assemblyName = Path.GetRandomFileName();
@@ -358,7 +449,7 @@ namespace Xavier
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex.Message + " Problem from RunCSAssembly");
+                Console.WriteLine(ex.ToString() + " Problem from RunCSAssembly");
             }
             GC.Collect();
             return codeResponse;
@@ -404,9 +495,9 @@ namespace Xavier
 
             foreach (var instance in instances)
             {
-                if (combinedInstances.Any(x => (x as XavierNode).Name == (instance as XavierNode).Name))
+                if (combinedInstances.Any(x => (x as CsxNode).Name == (instance as CsxNode).Name))
                 {
-                    var existingInstance = combinedInstances.First(x => (x as XavierNode).Name == (instance as XavierNode).Name);
+                    var existingInstance = combinedInstances.First(x => (x as CsxNode).Name == (instance as CsxNode).Name);
                     foreach (var property in instance.GetType().GetProperties())
                     {
                         if (property.CanWrite)

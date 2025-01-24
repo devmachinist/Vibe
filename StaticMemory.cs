@@ -1,11 +1,10 @@
 ﻿using System.Reflection;
 using System.Text;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
 namespace Vibe
 {
-    public class Memory : IXavierMemory
+    public class StaticMemory : IXavierMemory
     {
         public List<object> CsxNodes { get; set; } = new List<object>();
         public string? XavierName { get; set; } = "Xavier";
@@ -13,36 +12,28 @@ namespace Vibe
         public string? JSModule { get; set; }
         public string? EFModule { get; set; }
         public string? StaticRoot { get; set; }
-        public string? StaticFallback { get; set; }
+        public string? StaticFallback { get;set; }
         public bool? AddAuthentication { get; set; } = true;
-        public bool IsSPA { get; set; } = false;
+        public bool IsSPA {get;set;} = false;
         public string? JSAuth() => $@"";
-        public Memory()
-        {
-
+        public StaticMemory(){
+            
         }
 
         [MethodImplAttribute(MethodImplOptions.NoInlining)]
-        public async Task Init(string? root = null, string? destination = null, bool isSPA = true, Assembly? asm = null)
+        public async Task Init(string? root = null, string? destination = null, bool isSPA = false, Assembly? asm = null)
         {
             var assemblies = GetAllAssemblies();
-            if (asm != null)
+            if(asm != null)
             {
                 assemblies.Add(asm);
             }
-            StaticRoot = root ?? AppContext.BaseDirectory;
+            StaticRoot = root?? AppContext.BaseDirectory;
             root = StaticRoot;
-            if(assemblies.Where(a => a.GetName().ToString().Contains("Microsoft.Maui")).ToList().Count() > 0)
-            {
-                destination = destination ?? AppDomain.CurrentDomain.BaseDirectory + "/wwwroot";
-            }
-            else
-            {
-                destination = destination ?? Directory.GetCurrentDirectory() + "/wwwroot";
-            }
+            destination = destination ?? Directory.GetCurrentDirectory()+ "/wwwroot";
             foreach (var assembly in assemblies)
             {
-                if (assembly.DefinedTypes.Where(type => type.BaseType == typeof(CsxNode)).ToList().Count < 1)
+                if(assembly.DefinedTypes.Where(type => type.BaseType == typeof(CsxNode)).ToList().Count < 1)
                 {
                     continue;
                 }
@@ -61,10 +52,6 @@ namespace Vibe
     }}
 }});
 window.onpopstate = function (event){{
-    clearXidElements();
-}}
-window.pushStates = [];
-window.stateChanged = () => {{
     clearXidElements();
 }}
 function clearXidElements() {{
@@ -863,7 +850,7 @@ function clearXidElements() {{
                             }
                             StringBuilder check = new StringBuilder();
                             CsxNodes.ForEach(n => { check.Append((n as CsxNode).ClassBody(this)); });
-                            if (File.ReadAllText(file).Length == ($"(async function(){{ {check.ToString()} {wb.ToString()} }})()").Length)
+                            if (File.ReadAllText(file).Length == ($"(async function(){{ {check.ToString()} {wb.ToString()}  }})()").Length)
                             {
 
                             }
@@ -893,7 +880,7 @@ function clearXidElements() {{
 
         public async Task SearchForCsxNodesAndChildren(string searchDir, bool searchSubdirectories, Assembly assembly)
         {
-            List<object> CsxNodesAndChildren = new List<object>();
+                List<object> CsxNodesAndChildren = new List<object>();
             await Task.Run(() =>
             {
                 try
@@ -917,6 +904,7 @@ function clearXidElements() {{
                             try
                             {
                                 node = Activator.CreateInstance(assembly.GetType(assembly.FullName.Split(",")[0] + "." + CsxNode.Name), args);
+                                //Console.WriteLine(CsxNode.Content());
                             }
                             catch (Exception ex)
                             {
@@ -926,17 +914,10 @@ function clearXidElements() {{
                             {
                                 CsxNodes.Add(node);
                             }
-                            else
-                            {
-                                var oldnode = CsxNodes.FirstOrDefault(n => n.GetType() == node.GetType());
-                                CsxNodes.Remove(oldnode);
-                                CsxNodes.Add(node);
-                            }
                             // Check if the .xavier file has any .xavier.cs children
                         }
                     }
-                }
-                catch (Exception ex)
+                }catch(Exception ex)
                 {
                     Console.WriteLine(ex.ToString() + "Here is the problem in Search for xavier nodes");
                 }

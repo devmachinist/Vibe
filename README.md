@@ -45,7 +45,7 @@ To create a component using the Xavier Framework, follow these steps:
 Xavier Framework supports server-side rendering, which provides benefits like improved performance and search engine optimization (SEO). To enable server-side rendering for Xavier pages, follow these steps:
 
 1. Configure your web application to use Xavier Framework.
-2. Use the `app.MapXavierNodes` method in your application's configuration to map the Xavier nodes to specific routes. This method specifies the URL pattern and the destination directory for Xavier pages.
+2. Use the `app.MapCsxNodes` method in your application's configuration to map the Xavier nodes to specific routes. This method specifies the URL pattern and the destination directory for Xavier pages.
 3. Set the static fallback for Xavier:
 
 ```csharp
@@ -53,7 +53,7 @@ var memory = new Xavier.Memory();
 memory.StaticFallback("c:/wwwroot/index.html");
 
 //app build
-app.MapXavierNodes("{controller=Home}/{action=Index}/{id?}", Environment.CurrentDirectory + "/Pages", memory);
+app.MapCsxNodes("{controller=Home}/{action=Index}/{id?}", Environment.CurrentDirectory + "/Pages", memory);
 
 
 ## Initialization
@@ -129,10 +129,10 @@ Here is the code behind required for each component.
 using Xavier;
 
 namespace MyNamespace{
-    public partial class MyComponent : XavierNode
+    public partial class MyComponent : CsxNode
     {
         new public bool? ShouldRender = true;
-        public MyComponent(XavierNode xavier) : base(xavier){
+        public MyComponent(CsxNode xavier) : base(xavier){
         }
         public MyComponent(){
         }
