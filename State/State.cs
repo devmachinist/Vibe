@@ -1,8 +1,8 @@
 ﻿using AngleSharp;
 using AngleSharp.Io;
 using AngleSharp.Scripting;
-using Devmachinist.Constellations;
-using Devmachinist.JS;
+using Constellations;
+using DotJS;
 using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Concurrent;

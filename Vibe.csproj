@@ -43,6 +43,9 @@
   <ItemGroup>
     <None Include="Build\Xavier.targets" Pack="true" PackagePath="./build" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Build\CSX.targets" Pack="true" PackagePath="./build" />
+  </ItemGroup>
 
   <PropertyGroup>
     <UsingMicrosoftNETSdk>true</UsingMicrosoftNETSdk>

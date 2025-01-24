@@ -9,8 +9,8 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.Io;
 using AngleSharp.Text;
-using Devmachinist.Constellations;
-using Devmachinist.JS;
+using Constellations;
+using DotJS;
 
 namespace Vibe
 {

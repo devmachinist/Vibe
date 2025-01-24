@@ -61,7 +61,7 @@ namespace Vibe
                     ? "Main"
                     : Regex.Replace(csxFile.Replace($"{_projectDirectory}","").Replace(".csx",""), @"[\\/]","_");
 
-                var processedCode = usings + "\r\n" + "using System;\r\nusing AngleSharp;\r\nusing AngleSharp.Browser;\r\nusing AngleSharp.Dom;\r\nusing Xavier;\r\nusing Microsoft.Extensions.DependencyInjection;\r\nusing System.Dynamic;\r\nusing System.Collections.Generic;\r\n" + _csxParser.ParseCsx(code, className, null, _projectDirectory);
+                var processedCode = usings + "\r\n" + "using System;\r\nusing AngleSharp;\r\nusing AngleSharp.Browser;\r\nusing AngleSharp.Dom;\r\nusing Vibe;\r\nusing Microsoft.Extensions.DependencyInjection;\r\nusing System.Dynamic;\r\nusing System.Collections.Generic;\r\n" + _csxParser.ParseCsx(code, className, null, _projectDirectory);
 
                 // Write the processed code to a temporary .cs file
                 // Use a unique name to avoid conflicts

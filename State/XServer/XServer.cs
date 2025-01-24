@@ -1,5 +1,5 @@
-﻿using Devmachinist.Constellations;
-using Devmachinist.JS;
+﻿using Constellations;
+using DotJS;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
