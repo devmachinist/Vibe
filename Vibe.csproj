@@ -49,7 +49,7 @@
   <ItemGroup>
     <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
     <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
-    <None Include="$(OutputDir)Vibe.dll" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="buildTransitive/" />
   </ItemGroup>
 
   <PropertyGroup>
