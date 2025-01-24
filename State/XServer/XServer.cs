@@ -105,7 +105,10 @@ namespace Vibe
             Constellation.Run();
             Listener = listener;
             foreach (var pfx in Prefixes){
-                Listener._listener.Prefixes.Add(pfx);
+                if (pfx.StartsWith("http"))
+                {
+                    Listener._listener.Prefixes.Add(pfx);
+                }
             }
             Task.Run(async () => { await listener.StartAsync(); }).Wait();
         }
