@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
-    <Version>8.0.0-rc.1-alpha</Version>
+    <Version>8.0.0-rc.3-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -46,6 +46,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Build\Xavier.targets" Pack="true" PackagePath="./build" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\net8.0\Vibe.dll" Pack="true" PackagePath="./buildTransitive" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Build\CSX.targets" Pack="true" PackagePath="./buildTransitive" />
