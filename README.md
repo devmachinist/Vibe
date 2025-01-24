@@ -7,8 +7,8 @@ Vibe is a revolutionary framework for building modern applications using `.csx` 
 - **Unified Development**: Leverage the full power of C# in `.csx` files with JSX-like syntax for clean and intuitive code.
 - **Dynamic Routing**: Seamlessly define routes and APIs within your application.
 - **Service-Driven Architecture**: Register and inject services with ease, enabling modular and scalable applications.
-- **Node.js Integration**: Use `node_modules` to extend functionality with JavaScript libraries.
-- **Cross-Platform Compatibility**: Integrates smoothly with .NET MAUI for web and desktop applications.
+- **Node module Integration**: Use `node_modules` to extend functionality with csx libraries.
+- **Cross-Platform Compatibility**: Integrates smoothly with .NET MAUI for web and mobile/desktop applications.
 - **Developer Productivity**: Focus on building features instead of boilerplate with Vibe's streamlined architecture.
 
 ---
