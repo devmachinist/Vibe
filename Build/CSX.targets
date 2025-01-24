@@ -13,6 +13,7 @@
     <ItemGroup>
       <Compile Include="@(CsxSyntaxTrees)" />
     </ItemGroup>
+    <Message Text="Resolved Vibe.dll path: $(MSBuildThisFileDirectory)\Vibe.dll" Importance="high" />
 
     <Message Text="Injected CSX SyntaxTrees into the project build." Importance="high" />
   </Target>
