@@ -48,7 +48,7 @@
     <None Include="Build\Xavier.targets" Pack="true" PackagePath="./build" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Build\CSX.targets" Pack="true" PackagePath="./build" />
+    <None Include="Build\CSX.targets" Pack="true" PackagePath="./buildTransitive" />
   </ItemGroup>
 
   <PropertyGroup>
