@@ -474,7 +474,7 @@ CS.onReady(() => {
                     return;
                 }
             }
-            CS.invokeAsync('Xavier.XStateManager.ProcessUpdate', [JSON.stringify(update)]).catch((err) =>
+            CS.invokeAsync('Vibe.XStateManager.ProcessUpdate', [JSON.stringify(update)]).catch((err) =>
                 console.error('Failed to send update:', err, update)
             );
         } catch (err) {
