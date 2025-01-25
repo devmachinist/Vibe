@@ -56,7 +56,7 @@ namespace Vibe
 
             var key = Guid.NewGuid().ToString();
             var id = Guid.NewGuid().ToString();
-            var constellation = new Constellation("Xavier")
+            var constellation = new Constellation("Vibe")
                 .AsServer()
                 .ListenOn(null, "127.0.0.1", 65124)
                 .NoBroadcasting()
@@ -65,6 +65,7 @@ namespace Vibe
 
 
             Constellation = constellation;
+            Constellation.ConnectionClosed += ConnectionClosed;
 
             var provider = new LocalStorageProvider();
             provider.Initialize(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EonDB"));
@@ -77,7 +78,7 @@ namespace Vibe
 
         private void ConnectionClosed(NamedClient client)
         {
-            XStateManager.RemoveState(client.Id);    
+            XStateManager.RemoveState(client.EncryptionId);    
         }
 
         public void AddActiveState(State state)
