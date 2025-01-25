@@ -53,7 +53,6 @@ namespace Vibe
             }
 
 
-
             var key = Guid.NewGuid().ToString();
             var id = Guid.NewGuid().ToString();
             var constellation = new Constellation("Vibe")
@@ -458,28 +457,47 @@ namespace Vibe
         }
         public string GetXJs(){
             return @"
-
 const handledElements = new WeakSet();
 var lastChange = {};
+const messageQueue = [];
+const BATCH_INTERVAL = 100; // Flush the batch every 100ms
+
+// Event types that should bypass batching
+const IMMEDIATE_EVENTS = ['click', 'input', 'change'];
+
+// Function to flush the message queue to the server
+function flushMessageQueue() {
+    if (messageQueue.length > 0) {
+        try {
+            CS.invokeAsync('Vibe.XStateManager.ProcessBatchUpdate', [JSON.stringify(messageQueue)])
+                .catch((err) => console.error('Failed to send batch update:', err, messageQueue));
+            messageQueue.length = 0; // Clear the queue
+        } catch (err) {
+            console.error('Error sending batch update to server:', err);
+        }
+    }
+}
+
+// Periodically flush the message queue
+setInterval(flushMessageQueue, BATCH_INTERVAL);
+
 CS.onReady(() => {
     /**
      * Send updates to the server via `CS.invokeAsync`.
+     * Critical updates are sent immediately; others are batched.
      */
-
-    function sendToServer(update) {
-        try {
-            if(update.eventData){
-                if(update.eventData.type === 'mousemove'
-                   || update.eventData.type === 'pointermove'
-                   || update.eventData.type === 'pointerrawupdate'){
-                    return;
-                }
+    function sendToServer(update, immediate = false) {
+        if (immediate) {
+            // Send critical updates immediately
+            try {
+                CS.invokeAsync('Vibe.XStateManager.ProcessUpdate', [JSON.stringify(update)])
+                    .catch((err) => console.error('Failed to send immediate update:', err, update));
+            } catch (err) {
+                console.error('Error sending immediate update to server:', err);
             }
-            CS.invokeAsync('Vibe.XStateManager.ProcessUpdate', [JSON.stringify(update)]).catch((err) =>
-                console.error('Failed to send update:', err, update)
-            );
-        } catch (err) {
-            console.error('Error sending update to server:', err);
+        } else {
+            // Add non-critical updates to the batch
+            messageQueue.push(update);
         }
     }
 
@@ -491,7 +509,7 @@ CS.onReady(() => {
             userId: CS.client.name,
             type: event.type,
             targetXid: event.target.getAttribute('xid'),
-            value: ((event.target.value)? event.target.value: null)
+            value: event.target.value || null,
         };
     }
 
@@ -501,79 +519,76 @@ CS.onReady(() => {
     function observeDomMutations() {
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                var targetXid = mutation.target.getAttribute('xid');
+                const targetXid = mutation.target.getAttribute('xid');
+                let update;
+
                 switch (mutation.type) {
                     case 'attributes':
-                        var value = mutation.target.getAttribute(mutation.attributeName);
-                        if(lastChange.xid === targetXid && lastChange.value === value){
+                        const value = mutation.target.getAttribute(mutation.attributeName);
+                        if (lastChange.xid === targetXid && lastChange.value === value) {
+                            return;
                         }
-                        else{
-                            sendToServer({
-                                userId: CS.client.name,
-                                action: 'attributeChanged',
-                                targetXid: mutation.target.getAttribute('xid'),
-                                attribute: mutation.attributeName,
-                                value: mutation.target.getAttribute(mutation.attributeName),
-                                timestamp: Date.now(),
-                            });
-                        }
+                        update = {
+                            userId: CS.client.name,
+                            action: 'attributeChanged',
+                            targetXid: targetXid,
+                            attribute: mutation.attributeName,
+                            value: value,
+                            timestamp: Date.now(),
+                        };
                         break;
 
                     case 'childList':
-                        // Handle added nodes
-                        var value = mutation.target.innerHTML;
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                update = {
+                                    userId: CS.client.name,
+                                    action: 'nodeAdded',
+                                    parentXid: targetXid,
+                                    targetXid: node.getAttribute('xid'),
+                                    html: node.outerHTML,
+                                    previousSiblingXid: node.previousElementSibling?.getAttribute('xid') || null,
+                                    nextSiblingXid: node.nextElementSibling?.getAttribute('xid') || null,
+                                    timestamp: Date.now(),
+                                };
+                                sendToServer(update);
+                            }
+                        });
 
-                        if(lastChange.xid === targetXid && lastChange.value === value){
-                        }
-                        else{
-                            mutation.addedNodes.forEach((node) => {
-
-                                if (node.nodeType === Node.ELEMENT_NODE) {
-                                    sendToServer({
-                                        userId: CS.client.name,
-                                        action: 'nodeAdded',
-                                        parentXid: mutation.target.getAttribute('xid'),
-                                        targetXid: node.getAttribute('xid'),
-                                        html: node.outerHTML,
-                                        previousSiblingXid: node.previousElementSibling?.getAttribute('xid') || null,
-                                        nextSiblingXid: node.nextElementSibling?.getAttribute('xid') || null,
-                                        timestamp: Date.now(),
-                                    });
-                                }
-                            });
-                        
-
-                            // Handle removed nodes
-                            mutation.removedNodes.forEach((node) => {
-                                if (node.nodeType === Node.ELEMENT_NODE) {
-                                    sendToServer({
-                                        userId: CS.client.name,
-                                        action: 'nodeRemoved',
-                                        targetXid: node.getAttribute('xid'),
-                                        timestamp: Date.now(),
-                                    });
-                                }
-                            });
-                        }
+                        mutation.removedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                update = {
+                                    userId: CS.client.name,
+                                    action: 'nodeRemoved',
+                                    targetXid: node.getAttribute('xid'),
+                                    timestamp: Date.now(),
+                                };
+                                sendToServer(update);
+                            }
+                        });
                         break;
 
                     case 'characterData':
-                        sendToServer({
+                        update = {
                             userId: CS.client.name,
                             action: 'textChanged',
                             targetXid: mutation.target.parentNode?.getAttribute('xid'),
                             htmlContent: mutation.target.textContent,
                             timestamp: Date.now(),
-                        });
+                        };
                         break;
 
                     default:
                         console.warn('Unhandled mutation type:', mutation.type);
+                        return;
+                }
+
+                if (update) {
+                    sendToServer(update, true);
                 }
             });
         });
 
-        // Observe the entire document for mutations
         observer.observe(document, {
             attributes: true,
             childList: true,
@@ -582,104 +597,52 @@ CS.onReady(() => {
         });
     }
 
-/**
- * Capture all DOM events and forward them to the server.
- */
-function captureAllEvents() {
-    var handledEvents = [];
-    const handleEvent = (event) => {
-        event.stopPropagation();
-        if (event.target instanceof Element && event.target.getAttribute) {
-            const targetXid = event.target.getAttribute('xid');
-            if (!targetXid) return;
+    /**
+     * Capture all DOM events and forward them to the server.
+     */
+    function captureAllEvents() {
+        const handleEvent = (event) => {
+            event.stopPropagation();
+            if (event.target instanceof Element && event.target.getAttribute) {
+                const targetXid = event.target.getAttribute('xid');
+                if (!targetXid) return;
 
-            sendToServer({
-                action: 'event',
-                eventData: serializeEvent(event),
+                const update = {
+                    action: 'event',
+                    eventData: serializeEvent(event),
+                };
+
+                // Send immediate events directly
+                const isImmediate = IMMEDIATE_EVENTS.includes(event.type);
+                sendToServer(update, isImmediate);
+            }
+        };
+
+        const allEventTypes = Object.getOwnPropertyNames(window)
+            .filter((prop) => /^on/.test(prop))
+            .map((prop) => prop.slice(2));
+
+        Array.from(document.getElementsByTagName('*')).forEach((element) => {
+            if (handledElements.has(element)) {
+                return; // Skip elements that already have listeners
+            }
+
+            allEventTypes.forEach((eventType) => {
+                element.addEventListener(eventType, handleEvent);
             });
-        }
-    };
 
-    const allEventTypes = Object.getOwnPropertyNames(window)
-        .filter((prop) => /^on/.test(prop))
-        .map((prop) => prop.slice(2));
-
-    console.log(allEventTypes);
-    // Attach event listeners to all elements in the DOM
-    Array.from(document.getElementsByTagName('*')).forEach((element) => {
-        if (handledEvents.includes(element)) {
-            // Skip elements that already have listeners
-            return;
-        }
-
-        allEventTypes.forEach((eventType) => {
-            element.removeEventListener(eventType, handleEvent);
-            element.addEventListener(eventType, handleEvent);
+            handledElements.add(element); // Mark element as handled
         });
-
-        // Mark the element as handled
-        handledEvents.push(element);
-    });
-}
-
-// Start observing DOM mutations and capturing events
-observeDomMutations();
-captureAllEvents();
-console.log('Script loaded and event listeners attached.');
-
-
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Function to handle updates from the server
-    window.updateClientSideDom = function(update) {
-        console.log(`Received update: ${update.action}`);
-        lastChange = {action: update.action, xid: update.targetXid, value: update.htmlContent }
-
-        if (update.action === 'nodeAdded') {
-            const parent = document.querySelector(`[xid='${update.parentXid}']`);
-            if (parent) {
-                const newNode = document.createElement('div');
-                newNode.innerHTML = update.htmlContent;
-                parent.insertBefore(newNode, getNextSibling(parent, update.previousSiblingXid, update.nextSiblingXid));
-            }
-        }
-
-        if (update.action === 'nodeRemoved') {
-            const node = document.querySelector(`[xid='${update.targetXid}']`);
-            if (node) {
-                node.remove();
-            }
-        }
-
-        if (update.action === 'attributeChanged') {
-            const node = document.querySelector(`[xid='${update.targetXid}']`);
-            if (node) {
-                node.setAttribute(update.attributeName, update.htmlContent);
-            }
-        }
-
-        if (update.action === 'textChanged') {
-            const node = document.querySelector(`[xid='${update.targetXid}']`);
-            if (node) {
-                node.textContent = update.htmlContent;
-            }
-        }
-    };
-
-    // Helper function to handle precise positioning (previous and next siblings)
-    function getNextSibling(parent, previousSiblingXid, nextSiblingXid) {
-        const previousSibling = previousSiblingXid ? parent.querySelector(`[xid='${previousSiblingXid}']`) : null;
-        const nextSibling = nextSiblingXid ? parent.querySelector(`[xid='${nextSiblingXid}']`) : null;
-        if (previousSibling) {
-            return previousSibling.nextSibling;
-        } else if (nextSibling) {
-            return nextSibling;
-        } else {
-            return null;
-        }
     }
+
+    // Start observing DOM mutations and capturing events
+    observeDomMutations();
+    captureAllEvents();
+    console.log('Script loaded and event listeners attached.');
 });
+
+// Periodically flush the message queue on window unload to avoid data loss
+window.addEventListener('beforeunload', flushMessageQueue);
 
 ";
         }

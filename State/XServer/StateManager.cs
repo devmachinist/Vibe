@@ -50,6 +50,59 @@ public static class XStateManager
             return true;
         });
     }
+    [ToJS]
+    public static async Task<bool> ProcessBatchUpdate(string batchJson)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Deserialize the batch of updates
+                var updates = System.Text.Json.JsonSerializer.Deserialize<List<Update>>(batchJson);
+                if (updates == null || updates.Count == 0) return false;
+
+                foreach (var update in updates)
+                {
+                    if (!States.TryGetValue(update.userId ?? "", out var state))
+                        if (!States.TryGetValue(update.eventData?.userId ?? "", out state)) continue;
+
+                    switch (update.action)
+                    {
+                        case "nodeAdded":
+                            AddNodeToDom(state.Document, update);
+                            break;
+
+                        case "nodeRemoved":
+                            RemoveNodeFromDom(state.Document, update);
+                            break;
+
+                        case "attributeChanged":
+                            UpdateNodeAttribute(state.Document, update);
+                            break;
+
+                        case "textChanged":
+                            UpdateTextContent(state.Document, update);
+                            break;
+
+                        case "event":
+                            HandleDomEvent(state.Document, update);
+                            break;
+
+                        default:
+                            Console.WriteLine($"Unknown action: {update.action}");
+                            break;
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing batch update: {ex.Message}");
+                return false;
+            }
+        });
+    }
+
 
     public static State? GetState(string id){
         if(States.TryGetValue(id, out var state)){
@@ -88,7 +141,7 @@ public static class XStateManager
     private static void BackupRemovedState(string userId, State removedState)
     {
         // Implement backup logic here, e.g., save to a file or database
-        Console.WriteLine($"State for userId: {userId} backed up successfully.");
+        Console.WriteLine($"State for userId: {userId} deleted.");
     }
 
     private static void AddNodeToDom(CsxDocument document, Update update)
