@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
-    <Version>8.0.0-rc.900-alpha</Version>
+    <PackageIcon>VibeIcon.png</PackageIcon>
+    <Version>8.0.0-rc.902-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -18,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />
     <PackageReference Include="AngleSharp.Io" Version="1.0.0" />
-    <PackageReference Include="DotJS" Version="8.0.0-rc.1-alpha" />
+    <PackageReference Include="DotJS" Version="8.0.0-rc.2-alpha" />
     <PackageReference Include="EonDB" Version="8.0.0-rc.1-alpha" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" />
@@ -44,10 +45,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="VibeIcon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
     <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
     <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="buildTransitive/" />
     <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="buildTransitive/" />
