@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lastChange = {action: update.action, xid: update.targetXid, value: update.htmlContent }
 
         if (update.action === 'nodeAdded') {
-            const parent = document.querySelector([xid='${update.parentXid}']);
+            const parent = document.querySelector(`[xid='${update.parentXid}']`);
             if (parent) {
                 const newNode = document.createElement('div');
                 newNode.innerHTML = update.htmlContent;
@@ -659,21 +659,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (update.action === 'nodeRemoved') {
-            const node = document.querySelector([xid='${update.targetXid}']);
+            const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
                 node.remove();
             }
         }
 
         if (update.action === 'attributeChanged') {
-            const node = document.querySelector([xid='${update.targetXid}']);
+            const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
                 node.setAttribute(update.attributeName, update.htmlContent);
             }
         }
 
         if (update.action === 'textChanged') {
-            const node = document.querySelector([xid='${update.targetXid}']);
+            const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
                 node.textContent = update.htmlContent;
             }
@@ -682,8 +682,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper function to handle precise positioning (previous and next siblings)
     function getNextSibling(parent, previousSiblingXid, nextSiblingXid) {
-        const previousSibling = previousSiblingXid ? parent.querySelector([xid='${previousSiblingXid}']) : null;
-        const nextSibling = nextSiblingXid ? parent.querySelector([xid='${nextSiblingXid}']) : null;
+        const previousSibling = previousSiblingXid ? parent.querySelector(`[xid='${previousSiblingXid}']`) : null;
+        const nextSibling = nextSiblingXid ? parent.querySelector(`[xid='${nextSiblingXid}']`) : null;
         if (previousSibling) {
             return previousSibling.nextSibling;
         } else if (nextSibling) {
