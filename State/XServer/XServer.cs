@@ -646,7 +646,7 @@ window.addEventListener('beforeunload', flushMessageQueue);
 document.addEventListener('DOMContentLoaded', () => {
     // Function to handle updates from the server
     window.updateClientSideDom = function(update) {
-        console.log(Received update: ${update.action});
+        console.log(`Received update: ${update.action}`);
         lastChange = {action: update.action, xid: update.targetXid, value: update.htmlContent }
 
         if (update.action === 'nodeAdded') {
