@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const parent = document.querySelector(`[xid='${update.parentXid}']`);
             if (parent) {
                 const newNode = document.createElement('div');
-                newNode.innerHTML = update.htmlContent;
+                newNode.outerHTML = update.htmlContent;
                 parent.insertBefore(newNode, getNextSibling(parent, update.previousSiblingXid, update.nextSiblingXid));
             }
         }

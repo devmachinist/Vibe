@@ -828,22 +828,22 @@ namespace Vibe
             {
                 foreach (var mutation in mutations)
                 {
-                    var options = new JsonSerializerOptions
-                    {
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, // Skip unsupported members
-                        WriteIndented = true
-                    };
-                    Console.WriteLine(JsonSerializer.Serialize(mutation, options));
                     // Handle added nodes
                     if (mutation.Type == "childList")
                     {
                         if(mutation.Added is not null){
                             foreach (var addedNode in mutation.Added)
                             {
-                                if (mutation.Target is IElement element && element.HasAttribute("xid"))
+                                if (addedNode is IElement element && element.HasAttribute("xid"))
                                 {
                                     var targetXid = element.GetAttribute("xid");
-                                    await SendUpdateToClient("nodeAdded", targetXid, (addedNode as IElement).OuterHtml);
+                                    await SendUpdateToClient("nodeAdded",
+                                                targetXid,
+                                                (addedNode as IElement).OuterHtml,
+                                                "",
+                                                ((mutation.Target as IElement).Parent as IElement).GetAttribute("xid"),
+                                                (mutation.PreviousSibling as IElement).GetAttribute("xid"),
+                                                (mutation.NextSibling as IElement).GetAttribute("xid"));
                                 }
                             }
                         }
@@ -902,7 +902,7 @@ namespace Vibe
         }
 
         // Function to send updates to the client via JS invocation
-        public async Task SendUpdateToClient(string action, string? targetXid, string htmlContent, string attributeName = "", string parentXid = "", string previousSiblingXid = "", string nextSiblingXid = "")
+        public async Task SendUpdateToClient(string action, string? targetXid, string? htmlContent, string? attributeName = null, string? parentXid = null, string? previousSiblingXid = null, string? nextSiblingXid = null)
         {
             // Define the payload to be sent to the client
             var updatePayload = new
