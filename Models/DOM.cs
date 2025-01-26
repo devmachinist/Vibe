@@ -841,9 +841,9 @@ namespace Vibe
                                                 targetXid,
                                                 (addedNode as IElement).OuterHtml,
                                                 "",
-                                                ((mutation.Target as IElement).Parent as IElement).GetAttribute("xid"),
-                                                (mutation.PreviousSibling as IElement).GetAttribute("xid"),
-                                                (mutation.NextSibling as IElement).GetAttribute("xid"));
+                                                ((mutation.Target as IElement).Parent as IElement).GetAttribute("xid")?? "",
+                                                (mutation.PreviousSibling as IElement).GetAttribute("xid")?? "",
+                                                (mutation.NextSibling as IElement).GetAttribute("xid")?? "");
                                 }
                             }
                         }
@@ -902,7 +902,7 @@ namespace Vibe
         }
 
         // Function to send updates to the client via JS invocation
-        public async Task SendUpdateToClient(string action, string? targetXid, string? htmlContent, string? attributeName = null, string? parentXid = null, string? previousSiblingXid = null, string? nextSiblingXid = null)
+        public async Task SendUpdateToClient(string action, string? targetXid, string? htmlContent, string? attributeName = "", string? parentXid = "", string? previousSiblingXid = "", string? nextSiblingXid = "")
         {
             // Define the payload to be sent to the client
             var updatePayload = new
