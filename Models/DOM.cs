@@ -839,7 +839,7 @@ namespace Vibe
                                     var targetXid = element.GetAttribute("xid");
                                     await SendUpdateToClient("nodeAdded",
                                                 targetXid,
-                                                (addedNode as IElement).OuterHtml,
+                                                (addedNode as IElement)?.OuterHtml,
                                                 "",
                                                 ((mutation.Target as IElement)?.Parent as IElement)?.GetAttribute("xid")?? "",
                                                 (mutation.PreviousSibling as IElement)?.GetAttribute("xid")?? "",
