@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Dom.Events;
@@ -827,7 +828,12 @@ namespace Vibe
             {
                 foreach (var mutation in mutations)
                 {
-                    Console.WriteLine(JsonSerializer.Serialize(mutation));
+                    var options = new JsonSerializerOptions
+                    {
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, // Skip unsupported members
+                        WriteIndented = true
+                    };
+                    Console.WriteLine(JsonSerializer.Serialize(mutation, options));
                     // Handle added nodes
                     if (mutation.Type == "childList")
                     {
@@ -853,7 +859,6 @@ namespace Vibe
                                 }
                             }
                         }
-
                     }
 
                     // Handle attribute changes
