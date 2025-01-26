@@ -841,9 +841,9 @@ namespace Vibe
                                                 targetXid,
                                                 (addedNode as IElement).OuterHtml,
                                                 "",
-                                                ((mutation.Target as IElement).Parent as IElement).GetAttribute("xid")?? "",
-                                                (mutation.PreviousSibling as IElement).GetAttribute("xid")?? "",
-                                                (mutation.NextSibling as IElement).GetAttribute("xid")?? "");
+                                                ((mutation.Target as IElement)?.Parent as IElement)?.GetAttribute("xid")?? "",
+                                                (mutation.PreviousSibling as IElement)?.GetAttribute("xid")?? "",
+                                                (mutation.NextSibling as IElement)?.GetAttribute("xid")?? "");
                                 }
                             }
                         }
