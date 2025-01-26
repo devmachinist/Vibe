@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Dom.Events;
@@ -826,16 +827,17 @@ namespace Vibe
             {
                 foreach (var mutation in mutations)
                 {
+                    Console.WriteLine(JsonSerializer.Serialize(mutation));
                     // Handle added nodes
                     if (mutation.Type == "childList")
                     {
                         if(mutation.Added is not null){
                             foreach (var addedNode in mutation.Added)
                             {
-                                if (addedNode is IElement element && element.HasAttribute("xid"))
+                                if (mutation.Target is IElement element && element.HasAttribute("xid"))
                                 {
                                     var targetXid = element.GetAttribute("xid");
-                                    await SendUpdateToClient("nodeAdded", targetXid, element.OuterHtml);
+                                    await SendUpdateToClient("nodeAdded", targetXid, (addedNode as IElement).OuterHtml);
                                 }
                             }
                         }

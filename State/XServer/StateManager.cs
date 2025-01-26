@@ -195,6 +195,7 @@ public static class XStateManager
         _ = Task.Run(() =>
         {
             var node = document.QuerySelector($"[xid='{update.eventData.targetXid}']");
+
             if (node != null)
             {
                 if(update.eventData.value != null)
