@@ -522,6 +522,7 @@ CS.onReady(() => {
                 const targetXid = mutation.target.getAttribute('xid');
                 let update;
 
+
                 switch (mutation.type) {
                     case 'attributes':
                         const value = mutation.target.getAttribute(mutation.attributeName);
@@ -539,7 +540,12 @@ CS.onReady(() => {
                         break;
 
                     case 'childList':
+
                         mutation.addedNodes.forEach((node) => {
+                        if (lastChange.action === 'nodeAdded' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
+                            return;
+                        }
+
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
                                     userId: CS.client.name,
@@ -556,6 +562,9 @@ CS.onReady(() => {
                         });
 
                         mutation.removedNodes.forEach((node) => {
+                        if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
+                            return;
+                        }
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
                                     userId: CS.client.name,
