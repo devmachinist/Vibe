@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905015-alpha</Version>
+    <Version>8.0.0-rc.905016-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -15,8 +15,6 @@
     <PackageTags>Vibe, Maui, Web, Mobile, Desktop, Csx, App, c#</PackageTags>
     <RepositoryUrl>https://github.com/devmachinist/Vibe</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />
