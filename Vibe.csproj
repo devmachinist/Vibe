@@ -48,9 +48,8 @@
 
   <ItemGroup>
     <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
-    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="buildTransitive/" />
-    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="buildTransitive/" />
-  </ItemGroup>
+ </ItemGroup>
+
 
   <PropertyGroup>
     <UsingMicrosoftNETSdk>true</UsingMicrosoftNETSdk>
