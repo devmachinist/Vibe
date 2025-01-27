@@ -529,7 +529,7 @@ CS.onReady(() => {
                         var lastChange = lastChanges.find(lastChange =>
                                 lastChange.action === 'attributeChanged' && 
                                 lastChange.xid === targetXid &&
-                                lastChange.value === value));
+                                lastChange.value === value);
                         if(lastChange)
                         {
                              lastChanges = lastChanges.filter(change => change !== lastChange);
@@ -551,7 +551,7 @@ CS.onReady(() => {
                         var lastChange = lastChanges.find(lastChange =>
                                 lastChange.action === 'nodeRemoved' && 
                                 lastChange.xid === targetXid &&
-                                lastChange.value === node.outerHtml));
+                                lastChange.value === node.outerHtml);
                         if(lastChange)
                         {
                              lastChanges = lastChanges.filter(change => change !== lastChange);
@@ -574,7 +574,7 @@ CS.onReady(() => {
                         var lastChange = lastChanges.find(lastChange =>
                                 lastChange.action === 'nodeAdded' && 
                                 lastChange.xid === targetXid &&
-                                lastChange.value === node.outerHtml));
+                                lastChange.value === node.outerHtml);
                         if(lastChange)
                         {
                              lastChanges = lastChanges.filter(change => change !== lastChange);
@@ -599,7 +599,7 @@ CS.onReady(() => {
                         var lastChange = lastChanges.find(lastChange =>
                                 lastChange.action === 'textChanged' && 
                                 lastChange.xid === targetXid &&
-                                lastChange.value === mutation.target.textContent));
+                                lastChange.value === mutation.target.textContent);
                         if(lastChange)
                         {
                              lastChanges = lastChanges.filter(change => change !== lastChange);
