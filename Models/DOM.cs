@@ -828,6 +828,7 @@ namespace Vibe
             {
                 foreach (var mutation in mutations)
                 {
+                    Console.WriteLine(mutation.Type);
                     // Handle added nodes
                     if (mutation.Type == "childList")
                     {
