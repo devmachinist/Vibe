@@ -125,8 +125,8 @@ namespace Vibe
                 {
                     if((Parent as CsxNode).Element != null)
                     {
-                        var node = (Parent as CsxNode)?.Element?.Children.FirstOrDefault(p => p.GetAttribute($"xid") == Xid);
-                        if (node != null) (Parent as CsxNode).Element.ReplaceChild(node, transformedElement);
+                        var node = (Parent as CsxNode).Element.Children.FirstOrDefault(p => p.GetAttribute($"xid") == Xid);
+                        if (node != null) (Parent as CsxNode).Element.ReplaceChild(transformedElement, node);
                         else Parent.Element.AppendChild(transformedElement);
                     }
                 }

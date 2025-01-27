@@ -541,6 +541,22 @@ CS.onReady(() => {
 
                     case 'childList':
 
+                        mutation.removedNodes.forEach((node) => {
+                        if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
+                            return;
+                        }
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                update = {
+                                    userId: CS.client.name,
+                                    action: 'nodeRemoved',
+                                    targetXid: node.getAttribute('xid'),
+                                    timestamp: Date.now(),
+                                };
+                                sendToServer(update);
+                            }
+                        });
+                        break;
+
                         mutation.addedNodes.forEach((node) => {
                         if (lastChange.action === 'nodeAdded' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
                             return;
@@ -560,22 +576,6 @@ CS.onReady(() => {
                                 sendToServer(update);
                             }
                         });
-
-                        mutation.removedNodes.forEach((node) => {
-                        if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
-                            return;
-                        }
-                            if (node.nodeType === Node.ELEMENT_NODE) {
-                                update = {
-                                    userId: CS.client.name,
-                                    action: 'nodeRemoved',
-                                    targetXid: node.getAttribute('xid'),
-                                    timestamp: Date.now(),
-                                };
-                                sendToServer(update);
-                            }
-                        });
-                        break;
 
                     case 'characterData':
                         update = {
