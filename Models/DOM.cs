@@ -825,83 +825,79 @@ namespace Vibe
         }
         public void AttachMutationObserver(IElement element)
         {
-            var observer = new MutationObserver(async (mutations, x) =>
+            // Helper function to create and observe an individual element
+            void ObserveElement(IElement observedElement)
             {
-                foreach (var mutation in mutations)
+                // Create a new MutationObserver for the individual element
+                var individualObserver = new MutationObserver(async (mutations, observer) =>
                 {
-                    Console.WriteLine(mutation.Type);
-                    // Handle added nodes
-                    if (mutation.Type == "childList")
+                    var mutationsList = new List<IMutationRecord>(mutations);
+                    foreach (var mutation in mutationsList)
                     {
-                        if(mutation.Added is not null){
-                            foreach (var addedNode in mutation.Added ?? Enumerable.Empty<object>())
+                        Console.WriteLine(mutation.Type);
+
+                        // Handle added nodes
+                        if (mutation.Type == "childList")
+                        {
+                            if (mutation.Added is not null)
                             {
-                                if (addedNode is IElement element && element.HasAttribute("xid"))
+                                foreach (var addedNode in mutation.Added ?? Enumerable.Empty<object>())
                                 {
-                                    var targetXid = element.GetAttribute("xid");
-                                    await SendUpdateToClient("nodeAdded",
-                                                targetXid,
-                                                (addedNode as IElement)?.OuterHtml?? "",
-                                                "",
-                                                (mutation.Target as IElement)?.GetAttribute("xid")?? "",
-                                                (mutation.PreviousSibling as IElement)?.GetAttribute("xid")?? "",
-                                                (mutation.NextSibling as IElement)?.GetAttribute("xid")?? "");
+                                    if (addedNode is IElement addedElement && addedElement.HasAttribute("xid"))
+                                    {
+                                        var targetXid = addedElement.GetAttribute("xid");
+                                        await SendUpdateToClient("nodeAdded",
+                                            targetXid,
+                                            (addedNode as IElement)?.OuterHtml ?? "",
+                                            "",
+                                            (mutation.Target as IElement)?.GetAttribute("xid") ?? "",
+                                            (mutation.PreviousSibling as IElement)?.GetAttribute("xid") ?? "",
+                                            (mutation.NextSibling as IElement)?.GetAttribute("xid") ?? "");
+                                    }
+
+                                    // Observe added elements by creating a new observer for each added element
+                                    if (addedNode is IElement addedElementNode)
+                                    {
+                                        ObserveElement(addedElementNode); // Observe each added child
+                                    }
                                 }
                             }
                         }
 
                         // Handle removed nodes
-                        if(mutation.Removed is not null){
+                        if (mutation.Removed is not null)
+                        {
                             foreach (var removedNode in mutation.Removed ?? Enumerable.Empty<object>())
                             {
-                                if (removedNode is IElement element && element.HasAttribute("xid"))
+                                if (removedNode is IElement removedElement && removedElement.HasAttribute("xid"))
                                 {
-                                    var targetXid = element.GetAttribute("xid");
+                                    var targetXid = removedElement.GetAttribute("xid");
                                     await SendUpdateToClient("nodeRemoved", targetXid, "");
+
+                                    // Disconnect the observer for this removed element
+                                    observer.Disconnect(); // Disconnect the observer for this element
                                 }
                             }
                         }
                     }
+                });
 
-                    // Handle attribute changes
-                    if (mutation.Type == "attributes")
-                    {
-                        if (mutation.Target is IElement target && target.HasAttribute("xid"))
-                        {
-                            var targetXid = target.GetAttribute("xid");
-                            var attributeName = mutation.AttributeName;
-                            var newValue = target.GetAttribute(attributeName);
-                            await SendUpdateToClient("attributeChanged", targetXid, newValue, attributeName);
-                        }
-
-                    }
-
-                    // Handle text changes
-                    if (mutation.Type == "characterData")
-                    {
-                        var target = mutation.Target as IElement;
-                        if (target != null && target.HasAttribute("xid"))
-                        {
-                            var targetXid = target.GetAttribute("xid");
-                            await SendUpdateToClient("textChanged", targetXid, target.TextContent);
-                        }
-                    }
-                }
-
-            });
-            // Start observing the entire document or root node for mutations
-                observer.Connect(element,
-                        true, true, true, true
+                // Start observing the current element for mutations
+                individualObserver.Connect(observedElement,
+                    true, true, true, true // Observe childList, attributes, characterData, and the entire subtree
                 );
-                connectChildren(element);
-                void connectChildren(IElement element){
-                    foreach(var ce in element.Children){
-                        observer.Connect(ce,
-                        true,true,true,true);
-                        connectChildren(ce);
-                    }
+
+                // Observe all children of this element by creating a new observer for each child
+                foreach (var childElement in observedElement.Children)
+                {
+                    ObserveElement(childElement); // Observe each child element separately
                 }
+            }
+
+            // Start observing the provided element
+            ObserveElement(element);
         }
+
         public ConcurrentBag<dynamic> LastChanges { get; set; } = new ConcurrentBag<dynamic>();
         // Function to send updates to the client via JS invocation
         public async Task SendUpdateToClient(string action, string? targetXid, string? htmlContent, string? attributeName = "", string? parentXid = "", string? previousSiblingXid = "", string? nextSiblingXid = "")

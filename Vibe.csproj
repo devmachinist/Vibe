@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905024-alpha</Version>
+    <Version>8.0.0-rc.905025-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -55,6 +55,11 @@
     <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="/" />
     <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="/" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="lib/" />
+    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="lib/" />
+  </ItemGroup>
+
 
 
   <PropertyGroup>
