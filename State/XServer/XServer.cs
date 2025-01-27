@@ -526,12 +526,15 @@ CS.onReady(() => {
                 switch (mutation.type) {
                     case 'attributes':
                         const value = mutation.target.getAttribute(mutation.attributeName);
-                        lastChanges.forEach(lastChange => {
-                            if (lastChange.action === 'attributeChanged' && lastChange.xid === targetXid && lastChange.value === value) {
-                                lastChanges = lastChanges.filter(change => change !== lastChange);
-                                return;
-                            }
-                        });
+                        var lastChange = lastChanges.find(lastChange =>
+                                lastChange.action === 'attributeChanged' && 
+                                lastChange.xid === targetXid &&
+                                lastChange.value === value));
+                        if(lastChange)
+                        {
+                             lastChanges = lastChanges.filter(change => change !== lastChange);
+                             return;
+                        }   
                         update = {
                             userId: CS.client.name,
                             action: 'attributeChanged',
@@ -545,12 +548,15 @@ CS.onReady(() => {
                     case 'childList':
 
                         mutation.removedNodes.forEach((node) => {
-                        lastChanges.forEach(lastChange => {
-                            if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
-                                lastChanges = lastChanges.filter(change => change !== lastChange);
-                                return;
-                            }
-                        });
+                        var lastChange = lastChanges.find(lastChange =>
+                                lastChange.action === 'nodeRemoved' && 
+                                lastChange.xid === targetXid &&
+                                lastChange.value === node.outerHtml));
+                        if(lastChange)
+                        {
+                             lastChanges = lastChanges.filter(change => change !== lastChange);
+                             return;
+                        }    
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
                                     userId: CS.client.name,
@@ -564,13 +570,16 @@ CS.onReady(() => {
                         break;
 
                         mutation.addedNodes.forEach((node) => {
-                        lastChanges.forEach(lastChange => {
-                            if (lastChange.action === 'nodeAdded' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
-                                lastChanges = lastChanges.filter(change => change !== lastChange);
-                                return;
-                            }
-                        });
 
+                        var lastChange = lastChanges.find(lastChange =>
+                                lastChange.action === 'nodeAdded' && 
+                                lastChange.xid === targetXid &&
+                                lastChange.value === node.outerHtml));
+                        if(lastChange)
+                        {
+                             lastChanges = lastChanges.filter(change => change !== lastChange);
+                             return;
+                        }    
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
                                     userId: CS.client.name,
@@ -587,12 +596,15 @@ CS.onReady(() => {
                         });
 
                     case 'characterData':
-                        lastChanges.forEach(lastChange => {
-                            if (lastChange.action === 'textChanged' && lastChange.xid === targetXid && lastChange.value === mutation.target.textContent) {
-                                lastChanges = lastChanges.filter(change => change !== lastChange);
-                                return;
-                            }
-                        });
+                        var lastChange = lastChanges.find(lastChange =>
+                                lastChange.action === 'textChanged' && 
+                                lastChange.xid === targetXid &&
+                                lastChange.value === mutation.target.textContent));
+                        if(lastChange)
+                        {
+                             lastChanges = lastChanges.filter(change => change !== lastChange);
+                             return;
+                        }
                         update = {
                             userId: CS.client.name,
                             action: 'textChanged',
