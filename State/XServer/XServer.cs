@@ -527,7 +527,7 @@ CS.onReady(() => {
                     case 'attributes':
                         const value = mutation.target.getAttribute(mutation.attributeName);
                         lastChanges.forEach(lastChange => {
-                            if (lastChange.xid === targetXid && lastChange.value === value) {
+                            if (lastChange.action === 'attributeChanged' && lastChange.xid === targetXid && lastChange.value === value) {
                                 lastChanges = lastChanges.filter(change => change !== lastChange);
                                 return;
                             }

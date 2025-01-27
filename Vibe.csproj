@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905021-alpha</Version>
+    <Version>8.0.0-rc.905022-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
