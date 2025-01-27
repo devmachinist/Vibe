@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Resolve the path to Vibe.dll in the lib folder -->
+  <!-- Resolve the absolute path to Vibe.dll in the lib folder -->
   <PropertyGroup>
-    <VibeAssemblyPath>$(MSBuildThisFileDirectory)..\lib\$(TargetFramework)\Vibe.dll</VibeAssemblyPath>
+    <VibeAssemblyPath>$([System.IO.Path]::Combine('$(MSBuildThisFileDirectory)', '..', 'lib', '$(TargetFramework)', 'Vibe.dll'))</VibeAssemblyPath>
   </PropertyGroup>
 
   <!-- Register the CompileCsxTask from Vibe.dll -->
