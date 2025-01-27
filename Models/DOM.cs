@@ -832,7 +832,7 @@ namespace Vibe
                     if (mutation.Type == "childList")
                     {
                         if(mutation.Added is not null){
-                            foreach (var addedNode in mutation.Added)
+                            foreach (var addedNode in mutation.Added ?? Enumerable.Empty<object>())
                             {
                                 if (addedNode is IElement element && element.HasAttribute("xid"))
                                 {
@@ -850,7 +850,7 @@ namespace Vibe
 
                         // Handle removed nodes
                         if(mutation.Removed is not null){
-                            foreach (var removedNode in mutation.Removed)
+                            foreach (var removedNode in mutation.Removed ?? Enumerable.Empty<object>())
                             {
                                 if (removedNode is IElement element && element.HasAttribute("xid"))
                                 {
@@ -864,14 +864,14 @@ namespace Vibe
                     // Handle attribute changes
                     if (mutation.Type == "attributes")
                     {
-                        var target = mutation.Target as IElement;
-                        if (target != null && target.HasAttribute("xid"))
+                        if (mutation.Target is IElement target && target.HasAttribute("xid"))
                         {
                             var targetXid = target.GetAttribute("xid");
                             var attributeName = mutation.AttributeName;
                             var newValue = target.GetAttribute(attributeName);
                             await SendUpdateToClient("attributeChanged", targetXid, newValue, attributeName);
                         }
+
                     }
 
                     // Handle text changes
