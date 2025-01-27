@@ -65,7 +65,15 @@ public static class XStateManager
                 {
                     if (!States.TryGetValue(update.userId ?? "", out var state))
                         if (!States.TryGetValue(update.eventData?.userId ?? "", out state)) continue;
-
+                    
+                    foreach (var change in state.Document.LastChanges)
+                    {
+                        if (change.targetXid == update.targetXid && update.html == change.htmlContent)
+                        {
+                            state.Document.LastChanges = new ConcurrentBag<dynamic>(state.Document.LastChanges.Select(p => p != change));
+                            return true;
+                        }
+                    }
                     switch (update.action)
                     {
                         case "nodeAdded":

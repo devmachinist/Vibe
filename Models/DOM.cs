@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -901,7 +902,7 @@ namespace Vibe
                     }
                 }
         }
-
+        public ConcurrentBag<dynamic> LastChanges { get; set; } = new ConcurrentBag<dynamic>();
         // Function to send updates to the client via JS invocation
         public async Task SendUpdateToClient(string action, string? targetXid, string? htmlContent, string? attributeName = "", string? parentXid = "", string? previousSiblingXid = "", string? nextSiblingXid = "")
         {
@@ -916,6 +917,7 @@ namespace Vibe
                 previousSiblingXid = previousSiblingXid,
                 nextSiblingXid = nextSiblingXid,
             };
+            LastChanges.Add(updatePayload);
 
             // Invoke the JavaScript function that handles DOM updates on the client side
             if (JS != null)
