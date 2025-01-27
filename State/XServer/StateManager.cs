@@ -202,6 +202,7 @@ public static class XStateManager
                 (node as IHtmlInputElement).Value = update.eventData.value;
                 
                 var ev = new AngleSharp.Dom.Events.Event(update.eventData.type, false, false);
+                
                 node.Dispatch(ev);
             }
         });
