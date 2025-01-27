@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905017-alpha</Version>
+    <Version>8.0.0-rc.905019-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -48,7 +48,13 @@
 
   <ItemGroup>
     <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
- </ItemGroup>
+    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="buildTransitive/" />
+    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="/" />
+    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="/" />
+  </ItemGroup>
 
 
   <PropertyGroup>

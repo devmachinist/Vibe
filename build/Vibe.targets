@@ -1,35 +1,9 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Resolve the absolute path to Vibe.dll in the lib folder -->
   <PropertyGroup>
-    <VibeAssemblyPath>$([System.IO.Path]::Combine('$(MSBuildThisFileDirectory)', '..', 'lib', '$(TargetFramework)', 'Vibe.dll'))</VibeAssemblyPath>
+    <VibeAssemblyPath>$([System.IO.Path]::Combine('$(MSBuildThisFileDirectory)', '..', 'Vibe.dll'))</VibeAssemblyPath>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.1.2" />
-    <PackageReference Include="AngleSharp.Io" Version="1.0.0" />
-    <PackageReference Include="DotJS" Version="8.0.0-rc.2-alpha" />
-    <PackageReference Include="EonDB" Version="8.0.0-rc.1-alpha" />
-    <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" />
-    <PackageReference Include="Microsoft.ClearScript" Version="7.4.5" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Razor" Version="6.0.36" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageReference Include="System.CodeDom" Version="8.0.0" />
-    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
 
-  </ItemGroup>
   <!-- Register the CompileCsxTask from Vibe.dll -->
   <UsingTask TaskName="Vibe.Build.CompileCsxTask"
              AssemblyFile="$(VibeAssemblyPath)" />
