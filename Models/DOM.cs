@@ -834,6 +834,18 @@ namespace Vibe
                     // Handle added nodes
                     if (mutation.Type == "childList")
                     {
+                        // Handle removed nodes
+                        if(mutation.Removed is not null){
+                            foreach (var removedNode in mutation.Removed ?? Enumerable.Empty<object>())
+                            {
+                                if (removedNode is IElement element && element.HasAttribute("xid"))
+                                {
+                                    var targetXid = element.GetAttribute("xid");
+                                    await SendUpdateToClient("nodeRemoved", targetXid, "");
+                                }
+                            }
+                        }
+
                         if(mutation.Added is not null){
                             foreach (var addedNode in mutation.Added ?? Enumerable.Empty<object>())
                             {
@@ -851,17 +863,6 @@ namespace Vibe
                             }
                         }
 
-                        // Handle removed nodes
-                        if(mutation.Removed is not null){
-                            foreach (var removedNode in mutation.Removed ?? Enumerable.Empty<object>())
-                            {
-                                if (removedNode is IElement element && element.HasAttribute("xid"))
-                                {
-                                    var targetXid = element.GetAttribute("xid");
-                                    await SendUpdateToClient("nodeRemoved", targetXid, "");
-                                }
-                            }
-                        }
                     }
 
                     // Handle attribute changes
