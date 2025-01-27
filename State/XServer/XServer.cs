@@ -458,7 +458,7 @@ namespace Vibe
         public string GetXJs(){
             return @"
 const handledElements = new WeakSet();
-var lastChange = {};
+var lastChanges = [];
 const messageQueue = [];
 const BATCH_INTERVAL = 100; // Flush the batch every 100ms
 
@@ -526,9 +526,12 @@ CS.onReady(() => {
                 switch (mutation.type) {
                     case 'attributes':
                         const value = mutation.target.getAttribute(mutation.attributeName);
-                        if (lastChange.xid === targetXid && lastChange.value === value) {
-                            return;
-                        }
+                        lastChanges.forEach(lastChange => {
+                            if (lastChange.xid === targetXid && lastChange.value === value) {
+                                lastChanges = lastChanges.filter(change => change !== lastChange);
+                                return;
+                            }
+                        });
                         update = {
                             userId: CS.client.name,
                             action: 'attributeChanged',
@@ -542,9 +545,12 @@ CS.onReady(() => {
                     case 'childList':
 
                         mutation.removedNodes.forEach((node) => {
-                        if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
-                            return;
-                        }
+                        lastChanges.forEach(lastChange => {
+                            if (lastChange.action === 'nodeRemoved' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
+                                lastChanges = lastChanges.filter(change => change !== lastChange);
+                                return;
+                            }
+                        });
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
                                     userId: CS.client.name,
@@ -558,9 +564,12 @@ CS.onReady(() => {
                         break;
 
                         mutation.addedNodes.forEach((node) => {
-                        if (lastChange.action === 'nodeAdded' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
-                            return;
-                        }
+                        lastChanges.forEach(lastChange => {
+                            if (lastChange.action === 'nodeAdded' && lastChange.xid === targetXid && lastChange.value === node.outerHTML) {
+                                lastChanges = lastChanges.filter(change => change !== lastChange);
+                                return;
+                            }
+                        });
 
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 update = {
@@ -578,6 +587,12 @@ CS.onReady(() => {
                         });
 
                     case 'characterData':
+                        lastChanges.forEach(lastChange => {
+                            if (lastChange.action === 'textChanged' && lastChange.xid === targetXid && lastChange.value === mutation.target.textContent) {
+                                lastChanges = lastChanges.filter(change => change !== lastChange);
+                                return;
+                            }
+                        });
                         update = {
                             userId: CS.client.name,
                             action: 'textChanged',
@@ -656,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to handle updates from the server
     window.updateClientSideDom = function(update) {
         console.log(`Received update: ${update.action}`);
-        lastChange = {action: update.action, xid: update.targetXid, value: update.htmlContent }
+        lastChanges.push({action: update.action, xid: update.targetXid, value: update.htmlContent });
 
         if (update.action === 'nodeAdded') {
             const parent = document.querySelector(`[xid='${update.parentXid}']`);
