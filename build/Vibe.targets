@@ -3,12 +3,10 @@
   <PropertyGroup>
     <VibeAssemblyPath>$([System.IO.Path]::Combine('$(MSBuildThisFileDirectory)', '..', 'Vibe.dll'))</VibeAssemblyPath>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblySearchPaths>$(AssemblySearchPaths);$(MSBuildThisFileDirectory)\lib;$(MSBuildThisFileDirectory)\..\lib</AssemblySearchPaths>
-  </PropertyGroup>
   <!-- Register the CompileCsxTask from Vibe.dll -->
   <UsingTask TaskName="Vibe.Build.CompileCsxTask"
-             AssemblyFile="$(VibeAssemblyPath)" />
+             AssemblyFile="$(VibeAssemblyPath)"
+             RequiredRuntime="clr"/>
 
   <Target Name="CompileCsxFiles" BeforeTargets="CoreCompile">
     <!-- Call the CompileCsxTask -->
