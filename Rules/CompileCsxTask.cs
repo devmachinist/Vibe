@@ -1,9 +1,4 @@
 ﻿using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using System;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.Linq.Expressions;
 
 namespace Vibe.Build
 {
