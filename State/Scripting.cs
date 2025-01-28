@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Dynamic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -14,7 +8,6 @@ using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Scripting;
 using Vibe.Rules;
 
 namespace Vibe
@@ -43,7 +36,6 @@ namespace Vibe
 
             var csxFiles = Directory.GetFiles(_projectDirectory, "*.csx", SearchOption.AllDirectories);
             PackageJson packageJson = ProcessPackageJson();
-            Debug.WriteLine(packageJson.main);
             var genSyntaxTrees = new List<ITaskItem>();
 
             // Ensure the obj directory exists for generated code files
