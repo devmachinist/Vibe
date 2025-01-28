@@ -18,7 +18,6 @@ using AngleSharp.Html.Dom;
 using System.Text.Json.Serialization;
 using AngleSharp.Dom;
 using AngleSharp;
-using Swan;
 using System.Runtime.Serialization;
 
 namespace Vibe

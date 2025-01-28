@@ -3,7 +3,6 @@ using AngleSharp.Io;
 using AngleSharp.Scripting;
 using Constellations;
 using DotJS;
-using Microsoft.ClearScript.V8;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

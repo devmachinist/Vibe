@@ -32,7 +32,6 @@ namespace Vibe
 
         public Microsoft.Build.Framework.ITaskItem[] CompileCsxFiles(string outputDllPath)
         {
-            Debug.WriteLine("Compiling .csx files into a DLL...");
 
             var csxFiles = Directory.GetFiles(_projectDirectory, "*.csx", SearchOption.AllDirectories);
             PackageJson packageJson = ProcessPackageJson();

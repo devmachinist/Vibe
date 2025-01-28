@@ -10,7 +10,6 @@ using AngleSharp.Html.Dom.Events;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
 using AngleSharp.Dom;
-using Swan;
 
 namespace Vibe.Rules
 {
@@ -194,10 +193,8 @@ namespace Vibe.Rules
         /// <returns>True if the tagName is a valid type; otherwise, false.</returns>
         public bool CheckTagName(string tagName)
         {   
-            Console.WriteLine(tagName);
             var check = DoesTypeExist(tagName);
             if(check == true){
-                Console.WriteLine(tagName + " is a valid type");
             }
             return check
                     || tagName.Contains('=')
@@ -467,7 +464,6 @@ namespace Vibe.Rules
                     }
                     else if (child is TextNode textNode)
                     {
-                        Console.WriteLine("TextNode:"+textNode.Text);
                         if(lastNode is CodeNode || next is CodeNode){
                             CodeBuilder.Append(textNode.Text);
                             lastNode = child;
@@ -491,7 +487,6 @@ namespace Vibe.Rules
                         if(next is ElementNode && lastNode is CodeNode
                             || child == element.Children.Last() && lastNode is CodeNode){
                             CodeBuilder.Append(textNode.Text);
-                            Console.WriteLine("CODEBUILDER OUTPUT:"+CodeBuilder.ToString());
                             var fragments = ParseTextFragments(CodeBuilder.ToString());
                             CodeBuilder = new StringBuilder();
                             foreach (var fragment in fragments)
@@ -505,7 +500,6 @@ namespace Vibe.Rules
                         }
                     }
                     else if (child is CodeNode code){
-                        Console.WriteLine("CodeNode:"+code.Code);
                         CodeBuilder.Append(code.Code);
                         if(next is ElementNode){
                             var fragments = ParseTextFragments(CodeBuilder.ToString());
@@ -520,7 +514,6 @@ namespace Vibe.Rules
                             continue;
                         }
                         if(child == element.Children.Last()){
-                            Console.WriteLine("CODEBUILDER:"+CodeBuilder.ToString());
                             var fragments = ParseTextFragments(CodeBuilder.ToString());
                             CodeBuilder = new StringBuilder();
                             foreach (var fragment in fragments)

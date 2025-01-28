@@ -15,7 +15,6 @@ using EonDB;
 using Microsoft.Extensions.DependencyInjection;
 using AngleSharp.Html.Dom;
 using AngleSharp;
-using Swan;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using AngleSharp.Dom;
 

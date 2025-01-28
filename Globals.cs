@@ -6,8 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.ClearScript.V8;
-using Microsoft.ClearScript;
 using AngleSharp;
 using AngleSharp.Dom;
 

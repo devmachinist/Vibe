@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Buffers;
-using Swan;
 
 namespace Vibe
 {
@@ -360,7 +359,7 @@ namespace Vibe
                         diagnostic.Severity == DiagnosticSeverity.Error);
                     foreach (Diagnostic diagnostic in failures)
                     {
-                        Console.Error.WriteLine(" {0}: {1}", diagnostic.Id, diagnostic.ToJson().ToString());
+                        Console.Error.WriteLine(" {0}: {1}", diagnostic.Id, diagnostic.Descriptor);
                     }
                 }
                 else
