@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905049-alpha</Version>
+    <Version>8.0.0-rc.905050-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -25,16 +25,9 @@
     <PackageReference Include="DotJS" Version="8.0.0-rc.2-alpha" />
     <PackageReference Include="EonDB" Version="8.0.0-rc.1-alpha" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" PrivateAssets="all" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all"  Version="3.3.4" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Razor" PrivateAssets="all" Version="6.0.36" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.12.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.12.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
@@ -51,26 +44,16 @@
   <ItemGroup>
     <Content Include="build\Vibe.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
-  <Target
-      Name="CopyProjectReferencesToPackage"
-      DependsOnTargets="ResolveReferences">
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
       <!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
-      <BuildOutputInPackage
-          Include="@(ReferenceCopyLocalPaths)"
-          TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
     </ItemGroup>
   </Target>
-  <Target
-        Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput"
-        BeforeTargets="BuiltProjectOutputGroup"
-        Condition=" '$(GenerateDependencyFile)' == 'true'">
+  <Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
 
     <ItemGroup>
-      <BuiltProjectOutputGroupOutput
-          Include="$(ProjectDepsFilePath)"
-          TargetPath="$(ProjectDepsFileName)"
-          FinalOutputPath="$(ProjectDepsFilePath)" />
+      <BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)" FinalOutputPath="$(ProjectDepsFilePath)" />
     </ItemGroup>
   </Target>
   <PropertyGroup>
