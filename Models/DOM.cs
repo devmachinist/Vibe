@@ -827,6 +827,7 @@ namespace Vibe
         {
             var observer = new MutationObserver(async (mutas, x) =>
             {
+                x.Disconnect();
                 var mutations = new List<IMutationRecord>(mutas);
                 foreach (var mutation in mutations)
                 {
