@@ -9,7 +9,7 @@
   <!-- Register the CompileCsxTask from Vibe.dll -->
   <UsingTask TaskName="Vibe.Build.CompileCsxTask"
              AssemblyFile="$(VibeAssemblyPath)"
-             />
+             Runtime="CurrentRuntime" />
 
   <Target Name="CompileCsxFiles" BeforeTargets="CoreCompile">
     <!-- Call the CompileCsxTask -->
