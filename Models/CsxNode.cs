@@ -596,19 +596,64 @@ class {Node.Name.ToUpper()} extends CsxNode {{
         }
         public CsxNode(dynamic node)
         {
-            foreach(var prop in ((PropertyInfo[])node.GetType().GetProperties()))
+            // Copy other properties dynamically if required
+            foreach (var property in node.GetType().GetProperties())
             {
-                _properties[prop.Name] = prop.GetValue(node);
-            }
-            foreach(var prop in ((MethodInfo[])node.GetType().GetMethods()))
-            {
-                if (typeof(Task).IsAssignableFrom(prop.ReturnType))
-                    _properties[prop.Name] = CreateAsyncMethodWrapper(prop, node);
-                
-                else
-                    _properties[prop.Name] = CreateMethodWrapper(prop, node);
+                var propertyValue = property.GetValue(node);
+                var clonedValue = DeepClone(propertyValue); // Use a helper method for deep copying
+                GetType().GetProperty(property.Name)?.SetValue(this, clonedValue);
             }
         }
+        public CsxNode Clone()
+        {
+            return new CsxNode(this);
+        }
+        private static object DeepClone(object obj)
+        {
+            if (obj == null) return null;
+
+            // Handle primitive types and strings (return as is)
+            if (obj.GetType().IsPrimitive || obj is string)
+            {
+                return obj;
+            }
+
+            // Handle lists
+            if (obj is IList list)
+            {
+                var clonedList = (IList)Activator.CreateInstance(obj.GetType());
+                foreach (var item in list)
+                {
+                    clonedList.Add(DeepClone(item));
+                }
+                return clonedList;
+            }
+
+            // Handle dictionaries
+            if (obj is IDictionary dictionary)
+            {
+                var clonedDictionary = (IDictionary)Activator.CreateInstance(obj.GetType());
+                foreach (var key in dictionary.Keys)
+                {
+                    clonedDictionary[key] = DeepClone(dictionary[key]);
+                }
+                return clonedDictionary;
+            }
+
+            // Handle custom objects
+            var clonedObject = Activator.CreateInstance(obj.GetType());
+            foreach (var property in obj.GetType().GetProperties())
+            {
+                if (property.CanRead && property.CanWrite)
+                {
+                    var value = property.GetValue(obj);
+                    property.SetValue(clonedObject, DeepClone(value));
+                }
+            }
+
+            return clonedObject;
+        }
+
 
         public void on(string eventName, object listener)
         {

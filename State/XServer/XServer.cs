@@ -222,7 +222,7 @@ namespace Vibe
                     XUser user = GetOrCreateSession(context);
                     var router = Server.Router;
                     var state = XStateManager.GetState(user.Id);
-                    user.State = state?? new State(Server.App).SetUser(user).UseJs(Server.Constellation);
+                    user.State = state?? new State(Server.App.Clone()).SetUser(user).UseJs(Server.Constellation);
                     user.State.Document.JS = user.State.js;
 
                     if(state == null)
