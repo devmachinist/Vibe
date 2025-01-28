@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905030-alpha</Version>
+    <Version>8.0.0-rc.905032-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -37,7 +37,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
-    <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
     <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
@@ -57,8 +56,8 @@
     <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="lib/" />
-    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="lib/" />
+    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
+    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="lib/$(TargetFramework)" />
   </ItemGroup>
 
 
