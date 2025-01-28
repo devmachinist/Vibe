@@ -596,14 +596,16 @@ class {Node.Name.ToUpper()} extends CsxNode {{
             }
             return svs;
         }
-        public CsxNode(dynamic node)
+        public CsxNode(CsxNode node)
         {
-            var cn = (CsxNode)node;
-            var props = cn.GetType().GetProperties();
-            foreach (var prop in props)
-            {
-                prop.SetValue(this, prop.GetValue(cn));
-            }
+            Route = node.Route;
+            Name = node.Name;
+            Scripts = node.Scripts;
+            TagName = node.TagName;
+            this.HTML = node.HTML;
+            this.Attributes = node.Attributes;
+            this.ContentType = node.ContentType;
+            this._properties = node._properties;
         }
         public CsxNode Clone()
         {

@@ -1,4 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
   <!-- Resolve the absolute path to Vibe.dll in the lib folder -->
   <PropertyGroup>
     <VibeAssemblyPath>$(MSBuildThisFileDirectory)..\lib\net8.0\Vibe.dll</VibeAssemblyPath>
