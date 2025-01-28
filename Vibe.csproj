@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905032-alpha</Version>
+    <Version>8.0.0-rc.905033-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -14,6 +14,8 @@
     <PackageTags>Vibe, Maui, Web, Mobile, Desktop, Csx, App, c#</PackageTags>
     <RepositoryUrl>https://github.com/devmachinist/Vibe</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IsPackable>true</IsPackable>
+    <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />
@@ -21,7 +23,7 @@
     <PackageReference Include="DotJS" Version="8.0.0-rc.2-alpha" />
     <PackageReference Include="EonDB" Version="8.0.0-rc.1-alpha" />
     <PackageReference Include="EmbedIO" Version="3.5.2" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" PrivateAssets="all" ExcludeAssets="Runtime" />
     <PackageReference Include="Microsoft.ClearScript" Version="7.4.5" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>
@@ -47,17 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build\Vibe.targets" Pack="true" PackagePath="buildTransitive/" />
-    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="buildTransitive/" />
-    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="buildTransitive/" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="/" />
-    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="/" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="bin\Release\net8.0\*.dll" Pack="true" PackagePath="lib/$(TargetFramework)" />
-    <None Include="bin\Release\net8.0\Vibe.*" Pack="true" PackagePath="lib/$(TargetFramework)" />
+    <Content Include="build\Vibe.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
 
 
