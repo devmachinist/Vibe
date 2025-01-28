@@ -601,10 +601,12 @@ class {Node.Name.ToUpper()} extends CsxNode {{
             Name = node.Name;
             Scripts = node.Scripts;
             TagName = node.TagName;
-            this.HTML = node.HTML;
-            this.Attributes = node.Attributes;
-            this.ContentType = node.ContentType;
-            this._properties = node._properties;
+            HTML = node.HTML;
+            Attributes = node.Attributes;
+            ContentType = node.ContentType;
+            _properties = node._properties;
+            ChildNodes = node.ChildNodes;
+            Parameters = node.Parameters;
         }
         public CsxNode Clone()
         {
