@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-rc.905053-alpha</Version>
+    <Version>8.0.0-preview.1-alpha</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -42,10 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="build\Vibe.Local.targets">
-      <PackagePath>build/</PackagePath>
-      <Pack>true</Pack>
-    </Content>
     <Content Include="build\Vibe.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">

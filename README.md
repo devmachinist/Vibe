@@ -130,4 +130,4 @@ Here’s an example `package.json` for a project using Vibe:
 Vibe is licensed under an MIT License.
 ---
 
-Experience the simplicity and power of Vibe—start building today!
+Experience the simplicity and power of Vibe and start building today!

@@ -43,6 +43,10 @@ namespace Vibe
             if (ShouldRender && document != null && _properties.ContainsKey("TagName"))
             {
                 _handlers.Clear();
+                IElement transformedElement = document.CreateElement(string.IsNullOrEmpty(_properties["TagName"] as string)? "html": _properties["TagName"] as string);
+                // Convert values to the Element
+                transformedElement.SetAttribute("xid", this.Xid);
+                Element = transformedElement;
                 OnRender();
                 // Pre-Processor
                 foreach(var child in ChildNodes){
@@ -52,10 +56,7 @@ namespace Vibe
                             break;
                     }
                 }
-                IElement transformedElement = document.CreateElement(string.IsNullOrEmpty(_properties["TagName"] as string)? "html": _properties["TagName"] as string);
-                // Convert values to the Element
-                transformedElement.SetAttribute("xid", this.Xid);
-                Element = transformedElement;
+
                 try
                 {
                     (Parent as CsxNode)?.Element.ReplaceChild(transformedElement, Element);

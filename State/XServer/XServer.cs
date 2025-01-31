@@ -63,11 +63,18 @@ namespace Vibe
 
 
             Constellation = constellation;
+            Constellation.ConnectionClosed += handleState;
 
             var provider = new LocalStorageProvider();
             provider.Initialize(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EonDB"));
             EonDB = new EonDB.EonDB(provider);
         }
+
+        private void handleState(NamedClient namedClient)
+        {
+            XStateManager.RemoveState(namedClient.EncryptionId);
+        }
+
         public XServer AddPrefixes(string[] prefixes){
             Prefixes.AddRange(prefixes);
             return this;
