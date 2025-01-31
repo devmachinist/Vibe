@@ -33,7 +33,7 @@ namespace Vibe
         public string ContentRoot { get; set; }
         public string AssemblyName { get; set; }
         public RouteMatchService Router {get; set;} = new RouteMatchService();
-        public CsxNode App { get; set; }
+        public Func<CsxNode> App { get; set; }
         public EonDB.EonDB EonDB { get; set; }
         private SecureHttpListener Listener { get; set; }
         private readonly X509Certificate2 _certificate;
@@ -63,7 +63,6 @@ namespace Vibe
 
 
             Constellation = constellation;
-            Constellation.ConnectionClosed += ConnectionClosed;
 
             var provider = new LocalStorageProvider();
             provider.Initialize(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EonDB"));
@@ -74,11 +73,6 @@ namespace Vibe
             return this;
         }
 
-        private void ConnectionClosed(NamedClient client)
-        {
-            XStateManager.RemoveState(client.EncryptionId);    
-        }
-
         public void AddActiveState(State state)
         {
             XStateManager.AddState(state.XUser.Id, state);
@@ -86,13 +80,13 @@ namespace Vibe
 
         public XServer SetAppComponent(dynamic root)
         {
-            if (root is Action)
+            if (root is Func<CsxNode>)
             {
-                App = root();
+                App = root;
             }
             else
             {
-                App = root as CsxNode;
+                App = () => root as CsxNode;
             }
             return this;
         }
@@ -220,34 +214,7 @@ namespace Vibe
 
                     XUser user = GetOrCreateSession(context);
                     var router = Server.Router;
-                    var state = XStateManager.GetState(user.Id);
-                    user.State = state?? new State(Server.App.Clone()).SetUser(user).UseJs(Server.Constellation);
-                    user.State.Document.JS = user.State.js;
 
-                    if(state == null)
-                    { 
-                        XStateManager.AddState(user.Id, user.State);
-                    }
-                    else{
-                    }
-
-                    var xServerContext = new XServerContext( context, outputStream, user, Server.EonDB );
-                    if (string.IsNullOrEmpty(Path.GetExtension(context.Request.Url.AbsolutePath)) && context.Request.Url.AbsolutePath != "/_csx")
-                    {
-
-                    }
-                    if(context.Request.Url.AbsolutePath == "/_csx")
-                    {
-                        var js = Encoding.UTF8.GetBytes(user.State.js.Script + "\r\n" + Server.GetXJs());
-                        context.Response.ContentType = "application/javascript";
-                        context.Response.StatusCode = 200;
-                        await outputStream.WriteAsync(js, 0, js.Length);
-                        return;
-                    }
-
-                    if(xServerContext.HasReplied){
-                        return;
-                    }
                     string sessionId = user.Id;
 
                     var folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XavierRoot);
@@ -321,21 +288,44 @@ namespace Vibe
                         await outputStream.WriteAsync(page, 0, page.Length);
                         return;
                     }
+                    var xServerContext = new XServerContext( context, outputStream, user, Server.EonDB );
                     router.Run( ServeNext, xServerContext );
+                    var served = false;
                     await ServeNext();
-                    user.State.Document.Initialize(xServerContext);
+                    if (served) return;
+                    if(context.Request.Url.AbsolutePath == "/_csx")
+                    {
+                        var xsession = context.Request.Url.Query.Split("=")[1];
+                        Console.WriteLine(xsession);
+                        Console.WriteLine(XStateManager.States.Count().ToString());
+                        user = XStateManager.GetState(xsession).XUser;
+                        user.State.UseJs(Server.Constellation);
+                        Console.WriteLine(user.State.Document.ToHtml());
+                        var js = Encoding.UTF8.GetBytes(user.State.Document.JS.Script + "\r\n" + Server.GetXJs());
+                        context.Response.ContentType = "application/javascript";
+                        context.Response.StatusCode = 200;
+                        await outputStream.WriteAsync(js, 0, js.Length);
+                        return;
+                    }
 
-                    var res = Res;
-                    res.ContentType = "text/html";
-                    res.StatusCode = 200;
-                    await outputStream.WriteAsync(Encoding.UTF8.GetBytes("<!DOCTYPE html>\r\n"+user.State.Document.ToHtml())); 
-                    return;
+                    if (!xServerContext.HasReplied)
+                    {
+                        user.State = new State(Server.App).SetUser(user);
+                        user.State.Document.Initialize(xServerContext);
+                        user.State.Document.AttachSessionScript(user.Id);
+                        XStateManager.AddState(user.Id, user.State);
+                        var res = Res;
+                        res.ContentType = "text/html";
+                        res.StatusCode = 200;
+                        await outputStream.WriteAsync(Encoding.UTF8.GetBytes("<!DOCTYPE html>\r\n" + user.State.Document.ToHtml()));
+                        return;
+                    }
                     
                     async Task ServeNext()
                     {
                         var requestUrl = context.Request.Url.AbsolutePath;
                         string filePath = Path.Combine(ContentRoot, requestUrl.TrimStart('/'));
-                        Console.WriteLine(filePath);
+                        Console.WriteLine(requestUrl);
                         if (filePath == ContentRoot)
                         {
                             filePath = Path.Combine(filePath, "index.html");
@@ -347,6 +337,7 @@ namespace Vibe
                             context.Response.StatusCode = 200;
                             context.Response.ContentType = GetMimeType(filePath);
                             await outputStream.WriteAsync(fileBytes, 0, fileBytes.Length);
+                            served = true;
                             return;
                         }
                         if(Server.App == null)
@@ -364,28 +355,11 @@ namespace Vibe
                 string sessionId;
 
                 XUser? user; 
-                var cookie = context.Request.Cookies["SessionId"];
-                if (cookie != null)
-                {
-                    sessionId = cookie.Value;
-                    user = EonDB.Query<XUser>(sessionId, u => u.Id == sessionId).FirstOrDefault();
-                    if (user == null)
-                    {
-                        user = new XUser();
-                        user.Id = sessionId;
-                        EonDB.Add(sessionId, user);
-                    }
-                }
-                else
-                {
+
                     sessionId = Guid.NewGuid().ToString();
-                    context.Response.SetCookie(new Cookie("SessionId", sessionId));
                     user = new XUser();
                     user.Id = sessionId;
-                    EonDB.Add(sessionId, user);
-                }
 
-                sessionId = Guid.NewGuid().ToString();
                 return user;
             }
 
@@ -456,8 +430,8 @@ namespace Vibe
         }
         public string GetXJs(){
             return @"
-const handledElements = new WeakSet();
-var lastChanges = [];
+let handledElements = new WeakSet();
+let lastChanges = [];
 const messageQueue = [];
 const BATCH_INTERVAL = 100; // Flush the batch every 100ms
 
@@ -479,8 +453,6 @@ function flushMessageQueue() {
 
 // Periodically flush the message queue
 setInterval(flushMessageQueue, BATCH_INTERVAL);
-
-CS.onReady(() => {
     /**
      * Send updates to the server via `CS.invokeAsync`.
      * Critical updates are sent immediately; others are batched.
@@ -500,17 +472,8 @@ CS.onReady(() => {
         }
     }
 
-    /**
-     * Serialize an event for sending to the server.
-     */
-    function serializeEvent(event) {
-        return {
-            userId: CS.client.name,
-            type: event.type,
-            targetXid: event.target.getAttribute('xid'),
-            value: event.target.value || null,
-        };
-    }
+CS.onReady(() => {
+
 
     /**
      * Observe all DOM mutations and forward them to the server.
@@ -549,8 +512,7 @@ CS.onReady(() => {
                         mutation.removedNodes.forEach((node) => {
                         var lastChange = lastChanges.find(lastChange =>
                                 lastChange.action === 'nodeRemoved' && 
-                                lastChange.xid === targetXid &&
-                                lastChange.value === node.outerHtml);
+                                lastChange.xid === targetXid );
                         if(lastChange)
                         {
                              lastChanges = lastChanges.filter(change => change !== lastChange);
@@ -563,7 +525,7 @@ CS.onReady(() => {
                                     targetXid: node.getAttribute('xid'),
                                     timestamp: Date.now(),
                                 };
-                                sendToServer(update);
+                                //sendToServer(update);
                             }
                         });
                         break;
@@ -608,7 +570,7 @@ CS.onReady(() => {
                             userId: CS.client.name,
                             action: 'textChanged',
                             targetXid: mutation.target.parentNode?.getAttribute('xid'),
-                            htmlContent: mutation.target.textContent,
+                            newtext: mutation.target.textContent,
                             timestamp: Date.now(),
                         };
                         break;
@@ -630,6 +592,24 @@ CS.onReady(() => {
             subtree: true,
             characterData: true,
         });
+    }
+
+
+    // Start observing DOM mutations and capturing events
+    observeDomMutations();
+    captureAllEvents();
+    console.log('Script loaded and event listeners attached.');
+});
+    /**
+     * Serialize an event for sending to the server.
+     */
+    function serializeEvent(event) {
+        return {
+            userId: CS.client.name,
+            type: event.type,
+            targetXid: event.target.getAttribute('xid'),
+            value: event.target.value || null,
+        };
     }
 
     /**
@@ -670,39 +650,39 @@ CS.onReady(() => {
         });
     }
 
-    // Start observing DOM mutations and capturing events
-    observeDomMutations();
-    captureAllEvents();
-    console.log('Script loaded and event listeners attached.');
-});
-
 // Periodically flush the message queue on window unload to avoid data loss
 window.addEventListener('beforeunload', flushMessageQueue);
-document.addEventListener('DOMContentLoaded', () => {
+CS.onReady(() => {
     // Function to handle updates from the server
     window.updateClientSideDom = function(update) {
-        console.log(`Received update: ${update.action}`);
+        console.log(`Received update: `);
+        console.log(update);
         lastChanges.push({action: update.action, xid: update.targetXid, value: update.htmlContent });
-
-        if (update.action === 'nodeAdded') {
-            const parent = document.querySelector(`[xid='${update.parentXid}']`);
-            if (parent) {
-                const newNode = document.createElement('div');
-                newNode.outerHTML = update.htmlContent;
-                parent.insertBefore(newNode, getNextSibling(parent, update.previousSiblingXid, update.nextSiblingXid));
-            }
-        }
 
         if (update.action === 'nodeRemoved') {
             const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
-                node.remove();
             }
         }
+        if (update.action === 'nodeAdded') {
+            const node = document.querySelector(`[xid=""${update.targetXid}""]`);
+            if (node) {
+                handledElements.delete(node);
+                node.outerHTML = update.htmlContent;
+                const newNode = document.querySelector(`[xid=""${update.targetXid}""]`);
+                
+                const comb = (n) => {
+                    n.children.forEach(c => {comb(c); handledElements.delete(c)});
+                }
+                comb(node);
+            }
+        }
+
 
         if (update.action === 'attributeChanged') {
             const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
+                console.log(node);
                 node.setAttribute(update.attributeName, update.htmlContent);
             }
         }
@@ -713,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 node.textContent = update.htmlContent;
             }
         }
+        captureAllEvents();
     };
 
     // Helper function to handle precise positioning (previous and next siblings)

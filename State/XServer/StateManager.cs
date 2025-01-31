@@ -5,12 +5,13 @@ using AngleSharp;
 using DotJS;
 using System.Diagnostics;
 using AngleSharp.Html.Dom;
+using System.Text.Json;
 
 namespace Vibe;
 public static class XStateManager
 {
     // Store states in a dictionary by user ID
-    private static ConcurrentDictionary<string, State> States = new();
+    public static ConcurrentDictionary<string, State> States = new();
     [ToJS]
     public static async Task<bool> ProcessUpdate(string updateJson)
     {
@@ -18,7 +19,7 @@ public static class XStateManager
         {
             var update = System.Text.Json.JsonSerializer.Deserialize<Update>(updateJson);
 
-            if (!States.TryGetValue(update.userId ?? "", out var state))
+            if (!States.TryGetValue(update.userId ?? "", out var state) && state == null)
                 if (!States.TryGetValue(update.eventData?.userId ?? "", out state)) return false;
 
             switch (update.action)
@@ -63,17 +64,9 @@ public static class XStateManager
 
                 foreach (var update in updates)
                 {
-                    if (!States.TryGetValue(update.userId ?? "", out var state))
+                    if (!States.TryGetValue(update.userId ?? "", out var state) && state == null)
                         if (!States.TryGetValue(update.eventData?.userId ?? "", out state)) continue;
                     
-                    foreach (var change in state.Document.LastChanges)
-                    {
-                        if (change.targetXid == update.targetXid && update.html == change.htmlContent)
-                        {
-                            state.Document.LastChanges = new ConcurrentBag<dynamic>(state.Document.LastChanges.Select(p => p != change));
-                            return true;
-                        }
-                    }
                     switch (update.action)
                     {
                         case "nodeAdded":
@@ -111,12 +104,9 @@ public static class XStateManager
         });
     }
 
-
     public static State? GetState(string id){
-        if(States.TryGetValue(id, out var state)){
-            return state;
-        }
-        return null;
+          var xs = States.TryGetValue(id, out var state);
+        return xs? state: null;
     }
     public static void AddState(string userId, State state)
     {
@@ -130,6 +120,7 @@ public static class XStateManager
             if (States.TryRemove(userId, out var removedState))
             {
                 // Backup or log the removed state if necessary
+                removedState.Document.Dispose();
                 BackupRemovedState(userId, removedState);
                 return true;
             }
@@ -154,6 +145,12 @@ public static class XStateManager
 
     private static void AddNodeToDom(CsxDocument document, Update update)
     {
+        var lc = document.LastChanges.FirstOrDefault(lastChange =>
+                    lastChange.targetXid == update.targetXid &&
+                    lastChange.action == update.action &&
+                    lastChange.htmlContent == update.html);
+        if (lc is not null) {document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc)); return; }
+
         var parent = document.QuerySelector($"[xid='{update.parentXid}']");
         if (parent == null) return;
 
@@ -179,18 +176,46 @@ public static class XStateManager
 
     private static void RemoveNodeFromDom(CsxDocument document, Update update)
     {
+        var lc = document.LastChanges.FirstOrDefault(lastChange =>
+                    lastChange.targetXid == update.targetXid &&
+                    lastChange.action == update.action);
+        if (lc is not null) {
+            document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc));
+            return;
+        }
+        Console.WriteLine(JsonSerializer.Serialize(update));
+
         var node = document.QuerySelector($"[xid='{update.targetXid}']");
         node?.Remove();
     }
 
     private static void UpdateNodeAttribute(CsxDocument document, Update update)
     {
+        var lc = document.LastChanges.FirstOrDefault(lastChange =>
+                    lastChange.targetXid == update.targetXid &&
+                    lastChange.action == update.action &&
+                    lastChange.attributeName == update.attribute &&
+                    lastChange.htmlContent == update.value);
+        if (lc is not null) {
+            document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc));
+            return;
+        }
+
         var node = document.QuerySelector($"[xid='{update.targetXid}']");
         node?.SetAttribute(update.attribute, update.value);
     }
 
     private static void UpdateTextContent(CsxDocument document, Update update)
     {
+        var lc = document.LastChanges.FirstOrDefault(lastChange =>
+                    lastChange.targetXid == update.targetXid &&
+                    lastChange.action == update.action &&
+                    lastChange.htmlContent == update.newText);
+        if (lc is not null) {
+            document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc));
+            return;
+        }
+
         var node = document.QuerySelector($"[xid='{update.targetXid}']");
         if (node != null)
         {
@@ -200,20 +225,23 @@ public static class XStateManager
 
     private static void HandleDomEvent(CsxDocument document, Update update)
     {
-        _ = Task.Run(() =>
+        Task.Run(() =>
         {
-            var node = document.QuerySelector($"[xid='{update.eventData.targetXid}']");
+            var node = document.QuerySelector($@"[xid=""{update.eventData.targetXid}""]");
 
             if (node != null)
             {
                 if(update.eventData.value != null)
-                (node as IHtmlInputElement).Value = update.eventData.value;
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(update.eventData));
+                    (node as IHtmlInputElement).Value = update.eventData.value;
+                }
                 
                 var ev = new AngleSharp.Dom.Events.Event(update.eventData.type, false, false);
                 
                 node.Dispatch(ev);
             }
-        });
+        }).Wait();
     }
 }
 

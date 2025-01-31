@@ -73,9 +73,8 @@ namespace Vibe
         public IElement Element { get; set; }
         public Dictionary<string, Delegate> ParameterSetFunctions { get; set; } = new();
 
-        public CsxNode(string tagName = "div", dynamic? attributes = null)
+        public CsxNode(string tagName = "div")
         {
-            SetParameters(attributes);
             TagName = tagName;
             this["TagName"] = TagName;
         }
@@ -162,6 +161,7 @@ namespace Vibe
 
         public CsxNode AddAttribute(string key, dynamic value)
         {
+            _properties[key] = value;
             Attributes[key] = value;
             return this;
         }
@@ -597,20 +597,18 @@ class {Node.Name.ToUpper()} extends CsxNode {{
         }
         public CsxNode(CsxNode node)
         {
+            Xid = Guid.NewGuid().ToString();
             Route = node.Route;
             Name = node.Name;
             Scripts = node.Scripts;
             TagName = node.TagName;
             HTML = node.HTML;
             Attributes = node.Attributes;
+            Attributes["xid"] = Xid;
             ContentType = node.ContentType;
             _properties = node._properties;
             ChildNodes = node.ChildNodes;
             Parameters = node.Parameters;
-        }
-        public CsxNode Clone()
-        {
-            return new CsxNode(this);
         }
 
         public void on(string eventName, object listener)
@@ -644,15 +642,15 @@ class {Node.Name.ToUpper()} extends CsxNode {{
             wrapper = args =>
             {
                 listener(args);
-                off(eventName, wrapper);
+                off(eventName);
             };
             on(eventName, wrapper);
         }
 
-        public void off(string eventName, object listener)
+        public void off(string eventName)
         {
             if (_handlers.ContainsKey(eventName))
-                _handlers[eventName].Remove(listener);
+                _handlers.Remove(eventName);
         }
 
         dynamic CreateMethodWrapper(MethodInfo methodInfo, object instance)
@@ -687,11 +685,13 @@ class {Node.Name.ToUpper()} extends CsxNode {{
         /// <param name="types">The array of types to use as parameters</param>
         public CsxNode SetAttribute(string name, Delegate value)
         {
+            _properties[name] = value;
             Attributes[name] = value;
             return this;
         }
         public CsxNode SetAttribute(string name, dynamic value)
         {
+            _properties[name] = value;
             Attributes[name] = value;
             return this;
         }
@@ -789,6 +789,16 @@ class {Node.Name.ToUpper()} extends CsxNode {{
         {
             return Attributes[name];
         }
+
+        public virtual void Dispose()
+        {
+            Attributes.Clear();
+            _properties.Clear();
+            Properties.Clear();
+            ChildNodes.Clear();
+            Xid = "";
+            _handlers.Clear();
+        }
     }
 
     public class CsxNodeJsonConverter : JsonConverter<CsxNode>
@@ -820,7 +830,6 @@ class {Node.Name.ToUpper()} extends CsxNode {{
                 object value = JsonSerializer.Deserialize<object>(ref reader, options);
                 node.TrySetMember(new SimpleSetMemberBinder(propertyName), value);
             }
-
             return node;
         }
 

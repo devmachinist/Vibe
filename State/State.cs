@@ -16,7 +16,7 @@ namespace Vibe
 {
     public class State
     {
-        public string Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public IBrowsingContext Context {get;set;}
         public JS js { get; set; }
         public Constellation InteropConstellation { get; set; }
@@ -30,27 +30,25 @@ namespace Vibe
         public State(Func<CsxNode> initialize)
         {
             Context = BrowsingContext.New();
-            CsxDocument Doc = new CsxDocument(Context, initialize());
-            Doc.Root.SetDocument(Doc);
+            CsxDocument Doc = new CsxDocument(Context, initialize);
             Document = Doc;
         }
         public State(Func<Task<CsxNode>> initialize)
         {
             Context = BrowsingContext.New();
-            CsxDocument Doc = new CsxDocument(Context, Task.Run( async () => await initialize()).Result);
-            Doc.Root.SetDocument(Doc);
+            CsxDocument Doc = new CsxDocument(Context,() => initialize().Result);
             Document = Doc;
         }
         public State(CsxNode node)
         {
             Context = BrowsingContext.New();
-            CsxDocument Doc = new(Context, node);
-            Doc.Root.SetDocument(Doc);
+            CsxDocument Doc = new(Context,() => node);
             Document = Doc;
         }
         public State UseJs(Constellation constellation){
             InteropConstellation = constellation;
-            js = new JS(XUser.Id, constellation, Guid.NewGuid().ToString());
+            js = new JS(Id, constellation, Guid.NewGuid().ToString());
+            Document.JS = js;
             return this;
         }
 

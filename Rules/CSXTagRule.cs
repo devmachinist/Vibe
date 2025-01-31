@@ -438,7 +438,7 @@ namespace Vibe.Rules
             }
             else
             {
-                sb.Append($"new CsxNode(\"{element.TagName}\", new {{ {attrInit} }})" );
+                sb.Append($"new CsxNode(\"{element.TagName}\")" );
             }
             foreach (var dynamicAttr in dynamicAttributes)
             {
