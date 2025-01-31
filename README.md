@@ -29,7 +29,7 @@ dotnet add package Vibe
 
 Write your components and routes directly in `.csx` files. For example:
 
-```csx
+```cs
 
 @inject ViewService ViewService;
 
@@ -51,7 +51,7 @@ export dynamic Router() {
 
 Vibe includes an integrated server (`XServer`) for serving your application and APIs:
 
-```csx
+```cs
 
 import {Layout} from "./src/Layouts/MainLayout.csx";
 
@@ -70,7 +70,7 @@ Services are at the application level.
 
 Easily register and inject services to organize your application:
 
-```csx
+```cs
 
 @Services {
     services.AddSingleton<BottomDrawerService>();
