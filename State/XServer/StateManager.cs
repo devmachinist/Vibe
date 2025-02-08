@@ -1,10 +1,6 @@
-using AngleSharp.Dom;
-using AngleSharp.Html.Parser;
 using System.Collections.Concurrent;
-using AngleSharp;
 using DotJS;
 using System.Diagnostics;
-using AngleSharp.Html.Dom;
 using System.Text.Json;
 
 namespace Vibe;
@@ -24,21 +20,21 @@ public static class XStateManager
 
             switch (update.action)
             {
-                case "nodeAdded":
-                    AddNodeToDom(state.Document, update);
-                    break;
+                //case "nodeAdded":
+                //    AddNodeToDom(state.Document, update);
+                //    break;
 
-                case "nodeRemoved":
-                    RemoveNodeFromDom(state.Document, update);
-                    break;
+                //case "nodeRemoved":
+                //    RemoveNodeFromDom(state.Document, update);
+                //    break;
 
-                case "attributeChanged":
-                    UpdateNodeAttribute(state.Document, update);
-                    break;
+                //case "attributeChanged":
+                //    UpdateNodeAttribute(state.Document, update);
+                //    break;
 
-                case "textChanged":
-                    UpdateTextContent(state.Document, update);
-                    break;
+                //case "textChanged":
+                //    UpdateTextContent(state.Document, update);
+                //    break;
 
                 case "event":
                     HandleDomEvent(state.Document, update);
@@ -69,21 +65,21 @@ public static class XStateManager
                     
                     switch (update.action)
                     {
-                        case "nodeAdded":
-                            AddNodeToDom(state.Document, update);
-                            break;
+                        //case "nodeAdded":
+                        //    AddNodeToDom(state.Document, update);
+                        //    break;
 
-                        case "nodeRemoved":
-                            RemoveNodeFromDom(state.Document, update);
-                            break;
+                        //case "nodeRemoved":
+                        //    RemoveNodeFromDom(state.Document, update);
+                        //    break;
 
-                        case "attributeChanged":
-                            UpdateNodeAttribute(state.Document, update);
-                            break;
+                        //case "attributeChanged":
+                        //    UpdateNodeAttribute(state.Document, update);
+                        //    break;
 
-                        case "textChanged":
-                            UpdateTextContent(state.Document, update);
-                            break;
+                        //case "textChanged":
+                        //    UpdateTextContent(state.Document, update);
+                        //    break;
 
                         case "event":
                             HandleDomEvent(state.Document, update);
@@ -143,52 +139,6 @@ public static class XStateManager
         Console.WriteLine($"State for userId: {userId} deleted.");
     }
 
-    private static void AddNodeToDom(CsxDocument document, Update update)
-    {
-        var lc = document.LastChanges.FirstOrDefault(lastChange =>
-                    lastChange.targetXid == update.targetXid &&
-                    lastChange.action == update.action &&
-                    lastChange.htmlContent == update.html);
-        if (lc is not null) {document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc)); return; }
-
-        var parent = document.QuerySelector($"[xid='{update.parentXid}']");
-        if (parent == null) return;
-
-        var parser = new HtmlParser();
-        var newNode = parser.ParseFragment(update.html, parent).FirstOrDefault();
-        if (newNode == null) return;
-
-        if (!string.IsNullOrEmpty(update.previousSiblingXid))
-        {
-            var previousSibling = document.QuerySelector($"[xid='{update.previousSiblingXid}']");
-            previousSibling?.Parent?.InsertBefore(newNode, previousSibling.NextSibling);
-        }
-        else if (!string.IsNullOrEmpty(update.nextSiblingXid))
-        {
-            var nextSibling = document.QuerySelector($"[xid='{update.nextSiblingXid}']");
-            nextSibling?.Parent?.InsertBefore(newNode, nextSibling);
-        }
-        else
-        {
-            parent.AppendChild(newNode);
-        }
-    }
-
-    private static void RemoveNodeFromDom(CsxDocument document, Update update)
-    {
-        var lc = document.LastChanges.FirstOrDefault(lastChange =>
-                    lastChange.targetXid == update.targetXid &&
-                    lastChange.action == update.action);
-        if (lc is not null) {
-            document.LastChanges = new ConcurrentBag<dynamic>(document.LastChanges.Where(c => c != lc));
-            return;
-        }
-        Console.WriteLine(JsonSerializer.Serialize(update));
-
-        var node = document.QuerySelector($"[xid='{update.targetXid}']");
-        node?.Remove();
-    }
-
     private static void UpdateNodeAttribute(CsxDocument document, Update update)
     {
         var lc = document.LastChanges.FirstOrDefault(lastChange =>
@@ -219,7 +169,8 @@ public static class XStateManager
         var node = document.QuerySelector($"[xid='{update.targetXid}']");
         if (node != null)
         {
-            node.TextContent = update.newText;
+            node.Children.Clear();
+            node.Children.Add(update.newText);
         }
     }
 
@@ -227,19 +178,23 @@ public static class XStateManager
     {
         Task.Run(() =>
         {
-            var node = document.QuerySelector($@"[xid=""{update.eventData.targetXid}""]");
-
-            if (node != null)
+            try
             {
-                if(update.eventData.value != null)
+                var node = document.QuerySelector($@"[xid=""{update.eventData.targetXid}""]");
+                if (node != null)
                 {
-                    Console.WriteLine(JsonSerializer.Serialize(update.eventData));
-                    (node as IHtmlInputElement).Value = update.eventData.value;
+                    if (update.eventData.value != null)
+                    {
+                        var v = update.eventData.value;
+                        node.SetAttribute("value", v);
+                    }
+
+                    node.emit(update.eventData.type, update.eventData);
                 }
-                
-                var ev = new AngleSharp.Dom.Events.Event(update.eventData.type, false, false);
-                
-                node.Dispatch(ev);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }).Wait();
     }

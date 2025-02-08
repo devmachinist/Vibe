@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>Vibe</PackageId>
     <PackageIcon>VibeRoundIcon.png</PackageIcon>
-    <Version>8.0.0-preview.1-alpha</Version>
+    <Version>8.0.0-preview.1-beta</Version>
     <Authors>Matthew Teague</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -15,19 +15,10 @@
     <RepositoryUrl>https://github.com/devmachinist/Vibe</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IsPackable>true</IsPackable>
-    <TargetsForTfmSpecificBuildOutput>
-      $(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
-    </TargetsForTfmSpecificBuildOutput>
     <GenerateDependencyFile>true</GenerateDependencyFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.2.0" />
-    <PackageReference Include="DotJS" Version="8.0.0-rc.3-alpha" />
-    <PackageReference Include="EonDB" Version="8.0.0-rc.1-alpha" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.12.6" PrivateAssets="all" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.CodeAnalysis" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" Version="4.12.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" PrivateAssets="all" Version="4.12.0" />
+    <PackageReference Include="DotJS" Version="8.0.0-rc.4-alpha" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
@@ -39,10 +30,6 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="VibeRoundIcon.png" Pack="true" PackagePath="" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="build\Vibe.targets" Pack="true" PackagePath="build/" />
   </ItemGroup>
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
     <ItemGroup>
@@ -56,8 +43,4 @@
       <BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)" FinalOutputPath="$(ProjectDepsFilePath)" />
     </ItemGroup>
   </Target>
-  <PropertyGroup>
-    <UsingMicrosoftNETSdk>true</UsingMicrosoftNETSdk>
-  </PropertyGroup>
-
 </Project>

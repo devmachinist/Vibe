@@ -1,7 +1,4 @@
-﻿using AngleSharp;
-using AngleSharp.Io;
-using AngleSharp.Scripting;
-using Constellations;
+﻿using Constellations;
 using DotJS;
 using System;
 using System.Collections.Concurrent;
@@ -17,32 +14,27 @@ namespace Vibe
     public class State
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        public IBrowsingContext Context {get;set;}
         public JS js { get; set; }
         public Constellation InteropConstellation { get; set; }
         public dynamic[] Components { get; set; }
         public ConcurrentBag<object> UserComponents { get; set; } = [];
         public bool Changed() => UserComponents.Where(u => (u as CsxNode).HasChanges == true).Count() > 0;
-        public ScriptingService Scripts { get; set; }
         public XUser XUser { get; set; }
         public CsxDocument Document { get; set; }
 
         public State(Func<CsxNode> initialize)
         {
-            Context = BrowsingContext.New();
-            CsxDocument Doc = new CsxDocument(Context, initialize);
+            CsxDocument Doc = new CsxDocument(initialize);
             Document = Doc;
         }
         public State(Func<Task<CsxNode>> initialize)
         {
-            Context = BrowsingContext.New();
-            CsxDocument Doc = new CsxDocument(Context,() => initialize().Result);
+            CsxDocument Doc = new CsxDocument(() => initialize().Result);
             Document = Doc;
         }
         public State(CsxNode node)
         {
-            Context = BrowsingContext.New();
-            CsxDocument Doc = new(Context,() => node);
+            CsxDocument Doc = new(() => node);
             Document = Doc;
         }
         public State UseJs(Constellation constellation){
@@ -63,35 +55,6 @@ namespace Vibe
            var components = UserComponents.Where(c => (c as CsxNode).Xid != (component as CsxNode).Xid).ToList();
            UserComponents = new ConcurrentBag<dynamic>(components);
            UserComponents.Add(component);
-        }
-    }
-    public class ScriptingService : IScriptingService
-    {
-        public Scripting Scripting { get; set; }
-        public dynamic Scope { get; set; }
-        /// <summary>
-        /// Initializes a new ScriptingService that can be used to evaluate V8Script
-        /// </summary>
-        /// <param name="context"></param>
-        public ScriptingService(IBrowsingContext context)
-        {
-            Scope["Hey"]= (Func<Task<dynamic>>)(() => { return (dynamic)"HEY!"; });
-            Scope["window"] = context;
-            Scripting = new Scripting(Scope);
-
-            var package = JsonDocument.Parse(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "package.json"));
-        }
-        public async Task EvaluateScriptAsync(IResponse response, ScriptOptions options, CancellationToken cancel)
-        {
-        }
-        public async Task<object> Eval(string script)
-        {
-            var result = "";// JSEngine.Evaluate(JSEngine.Compile(script));
-            return result;
-        }
-        public bool SupportsType(string mimeType)
-        {
-            return MimeTypeNames.IsJavaScript(mimeType);    
         }
     }
 }

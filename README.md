@@ -18,7 +18,8 @@ Vibe is a revolutionary framework for building modern applications using `.csx` 
 Add Vibe to your project via the .NET CLI:
 
 ```bash
-dotnet add package Vibe
+dotnet add package VibeBuilder --prerelease;
+dotnet add package Vibe --prerelease;
 ```
 
 ---
@@ -31,19 +32,19 @@ Write your components and routes directly in `.csx` files. For example:
 
 ```cs
 
-@inject ViewService ViewService;
-
 import Home from "../Pages/Home.csx";
 import About from "../Pages/About.csx";
 
+var viewService = new ViewService();
+
 export dynamic Router() {
-    ViewService.AddViews([
+    viewService.AddViews([
         <div Route="/" View={Home()} />,
         <div Route="/About" View={About()} />
     ]);
-    ViewService.SetFallbackView(Home());
+    viewService.SetFallbackView(Home());
     
-    return <div class="w-full h-full">{ViewService}</div>;
+    return <div class="w-full h-full">{viewService}</div>;
 }
 ```
 
@@ -64,39 +65,12 @@ Server.AddPrefixes([
 Server.Start();
 ```
 
-### Powerful Service Injection
-
-Services are at the application level.
-
-Easily register and inject services to organize your application:
-
-```cs
-
-@Services {
-    services.AddSingleton<BottomDrawerService>();
-    services.AddSingleton<LeftDrawerService>();
-    services.AddSingleton<NavBarService>();
-    services.AddSingleton<ViewService>();
-}
-
-export dynamic Layout() {
-    return  
-    <html lang="en">
-        <head>
-            <title>Vibe App</title>
-        </head>
-        <body>
-            {ViewService}
-        </body>
-    </html>;
-}
-```
 
 ---
 
 ## Example Project
 
-Here’s an example `package.json` for a project using Vibe:
+Here's an example `package.json` for a project using Vibe:
 
 ```json
 {

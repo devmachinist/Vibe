@@ -25,6 +25,7 @@ public class RouteMatchService
     public static bool MatchRoute(string input, string pattern, out Dictionary<string, string> parameters)
     {
         parameters = new Dictionary<string, string>();
+        Console.WriteLine(pattern);
 
         if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(pattern))
             return false;

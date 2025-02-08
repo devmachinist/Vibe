@@ -11,12 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using EonDB;
 using Microsoft.Extensions.DependencyInjection;
-using AngleSharp.Html.Dom;
-using AngleSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using AngleSharp.Dom;
 
 namespace Vibe
 {
@@ -34,10 +29,10 @@ namespace Vibe
         public string AssemblyName { get; set; }
         public RouteMatchService Router {get; set;} = new RouteMatchService();
         public Func<CsxNode> App { get; set; }
-        public EonDB.EonDB EonDB { get; set; }
         private SecureHttpListener Listener { get; set; }
         private readonly X509Certificate2 _certificate;
         public TimeSpan SessionTimeout { get; set; } = TimeSpan.Zero;
+        public bool IsNested { get; private set; }
 
         public XServer(string hostPage = "Index.xavier", string webRoot = "wwwroot", string certPath = null, string certPassword = null)
         {
@@ -64,10 +59,6 @@ namespace Vibe
 
             Constellation = constellation;
             Constellation.ConnectionClosed += handleState;
-
-            var provider = new LocalStorageProvider();
-            provider.Initialize(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EonDB"));
-            EonDB = new EonDB.EonDB(provider);
         }
 
         private void handleState(NamedClient namedClient)
@@ -97,11 +88,16 @@ namespace Vibe
             }
             return this;
         }
+        public XServer Nested()
+        {
+            IsNested = true;
+            return this;
+        }
 
         public async void Start()
         {
 
-            var listener = new SecureHttpListener(ContentRoot, HostPage, XavierRoot, _certificate, Users, SessionTimeout, EonDB, Services, this);
+            var listener = new SecureHttpListener(ContentRoot, HostPage, XavierRoot, _certificate, Users, SessionTimeout, Services, this);
             Constellation.Run();
             Listener = listener;
             foreach (var pfx in Prefixes){
@@ -110,7 +106,11 @@ namespace Vibe
                     Listener._listener.Prefixes.Add(pfx);
                 }
             }
-            Task.Run(async () => { await listener.StartAsync(); }).Wait();
+            if (IsNested)
+            {
+                _ = listener.StartAsync();
+            }
+            else Task.Run(async () => { await listener.StartAsync(); }).Wait();
         }
 
         public class SecureHttpListener
@@ -122,7 +122,6 @@ namespace Vibe
             private readonly X509Certificate2 _certificate;
             private readonly ConcurrentBag<XUser> Users;
             private readonly TimeSpan SessionTimeout;
-            private readonly EonDB.EonDB EonDB;
             private readonly IServiceCollection Services;
             private readonly IServiceProvider ServiceProvider;
             public XServer Server { get; set; }
@@ -134,7 +133,6 @@ namespace Vibe
                 X509Certificate2 certificate,
                 ConcurrentBag<XUser> users,
                 TimeSpan sessionTimeout,
-                EonDB.EonDB eonDB,
                 IServiceCollection services,
                 XServer server)
             {
@@ -144,7 +142,6 @@ namespace Vibe
                 _certificate = certificate;
                 Users = users;
                 SessionTimeout = sessionTimeout;
-                EonDB = eonDB;
                 Services = services;
                 Server = server;
                 ServiceProvider = Services.BuildServiceProvider();
@@ -225,77 +222,9 @@ namespace Vibe
                     string sessionId = user.Id;
 
                     var folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, XavierRoot);
-                    var memory = XavierGlobal.Memory;
                     var requestPath = context.Request.Url.AbsolutePath.Trim('/');
 
-                    if (string.IsNullOrEmpty(requestPath))
-                    {
-                        requestPath = "Index";
-                    }
-
-                    var xavierFilePath = Path.Combine(folderPath, requestPath + ".xavier");
-                    var indexFilePath = Path.Combine(folderPath, requestPath, requestPath.Replace("/", "") + "Index.xavier");
-
-                    if (File.Exists(xavierFilePath))
-                    {
-                        var content = File.ReadAllText(xavierFilePath);
-                        if (content.Split(Environment.NewLine).FirstOrDefault()?.Trim() != "@page")
-                        {
-                            await ServeNext();
-                            return;
-                        }
-
-                        var component = memory.CsxNodes.FirstOrDefault(p => (p as CsxNode).Route == requestPath || (p as dynamic).Route == requestPath) as CsxNode;
-                        var userScopedComponent = EonDB.Query<CsxNode>(sessionId, (p) => p.Xid == component.Xid).FirstOrDefault();
-                        if (component == null)
-                        {
-                            await ServeNext();
-                            return;
-                        }
-                        if(userScopedComponent == null)
-                        {
-                            EonDB.Add(sessionId, component);
-                            userScopedComponent = component;
-                        }
-                        var htmL = userScopedComponent.Content(memory);
-                        var js = component.Scripts;
-                        string pattern = @"<\s*/\s*body\s*>";
-                        var page = Encoding.UTF8.GetBytes(Regex.Replace(String.Join(Environment.NewLine, htmL.Split(Environment.NewLine).Skip(1)), pattern, "<script async type='module'>" + js + "</script></body>", RegexOptions.IgnoreCase));
-
-                        context.Response.ContentType = component.ContentType;
-                        context.Response.StatusCode = 200;
-                        await outputStream.WriteAsync(page, 0, page.Length);
-                        return;
-                    }
-                    else if (File.Exists(indexFilePath))
-                    {
-                        var content = File.ReadAllText(indexFilePath);
-                        if (content.Split(Environment.NewLine).FirstOrDefault()?.Trim() != "@page")
-                        {
-                            await ServeNext();
-                            return;
-                        }
-
-                        var componentName = indexFilePath.Split("/").Last().Replace(".xavier", "");
-                        var component = memory.CsxNodes.FirstOrDefault(p => (p as CsxNode).Name == componentName) as CsxNode;
-
-                        if (component == null)
-                        {
-                            await ServeNext();
-                            return;
-                        }
-
-                        var htmL = component.Content(memory);
-                        var js = component.Scripts;
-                        string pattern = @"<\s*/\s*body\s*>";
-                        var page = Encoding.UTF8.GetBytes(Regex.Replace(String.Join(Environment.NewLine, htmL.Split(Environment.NewLine).Skip(1)), pattern, "<script async type='module'>" + js + "</script></body>", RegexOptions.IgnoreCase));
-
-                        context.Response.ContentType = "text/html";
-                        context.Response.StatusCode = 200;
-                        await outputStream.WriteAsync(page, 0, page.Length);
-                        return;
-                    }
-                    var xServerContext = new XServerContext( context, outputStream, user, Server.EonDB );
+                    var xServerContext = new XServerContext( context, outputStream, user);
                     router.Run( ServeNext, xServerContext );
                     var served = false;
                     await ServeNext();
@@ -303,11 +232,8 @@ namespace Vibe
                     if(context.Request.Url.AbsolutePath == "/_csx")
                     {
                         var xsession = context.Request.Url.Query.Split("=")[1];
-                        Console.WriteLine(xsession);
-                        Console.WriteLine(XStateManager.States.Count().ToString());
                         user = XStateManager.GetState(xsession).XUser;
                         user.State.UseJs(Server.Constellation);
-                        Console.WriteLine(user.State.Document.ToHtml());
                         var js = Encoding.UTF8.GetBytes(user.State.Document.JS.Script + "\r\n" + Server.GetXJs());
                         context.Response.ContentType = "application/javascript";
                         context.Response.StatusCode = 200;
@@ -315,11 +241,11 @@ namespace Vibe
                         return;
                     }
 
-                    if (!xServerContext.HasReplied)
-                    {
                         user.State = new State(Server.App).SetUser(user);
                         user.State.Document.Initialize(xServerContext);
-                        user.State.Document.AttachSessionScript(user.Id);
+
+                    if (!xServerContext.HasReplied)
+                    {
                         XStateManager.AddState(user.Id, user.State);
                         var res = Res;
                         res.ContentType = "text/html";
@@ -327,6 +253,7 @@ namespace Vibe
                         await outputStream.WriteAsync(Encoding.UTF8.GetBytes("<!DOCTYPE html>\r\n" + user.State.Document.ToHtml()));
                         return;
                     }
+                    return;
                     
                     async Task ServeNext()
                     {
@@ -460,152 +387,28 @@ function flushMessageQueue() {
 
 // Periodically flush the message queue
 setInterval(flushMessageQueue, BATCH_INTERVAL);
-    /**
-     * Send updates to the server via `CS.invokeAsync`.
-     * Critical updates are sent immediately; others are batched.
-     */
-    function sendToServer(update, immediate = false) {
-        if (immediate) {
-            // Send critical updates immediately
-            try {
-                CS.invokeAsync('Vibe.XStateManager.ProcessUpdate', [JSON.stringify(update)])
-                    .catch((err) => console.error('Failed to send immediate update:', err, update));
-            } catch (err) {
-                console.error('Error sending immediate update to server:', err);
-            }
-        } else {
-            // Add non-critical updates to the batch
-            messageQueue.push(update);
+/**
+ * Send updates to the server via `CS.invokeAsync`.
+ * Critical updates are sent immediately; others are batched.
+ */
+function sendToServer(update, immediate = false) {
+    if (immediate) {
+        // Send critical updates immediately
+        try {
+            CS.invokeAsync('Vibe.XStateManager.ProcessUpdate', [JSON.stringify(update)])
+                .catch((err) => console.error('Failed to send immediate update:', err, update));
+        } catch (err) {
+            console.error('Error sending immediate update to server:', err);
         }
+    } else {
+        // Add non-critical updates to the batch
+        messageQueue.push(update);
     }
+}
 
 CS.onReady(() => {
-
-
-    /**
-     * Observe all DOM mutations and forward them to the server.
-     */
-    function observeDomMutations() {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                const targetXid = mutation.target.getAttribute('xid');
-                let update;
-
-
-                switch (mutation.type) {
-                    case 'attributes':
-                        const value = mutation.target.getAttribute(mutation.attributeName);
-                        var lastChange = lastChanges.find(lastChange =>
-                                lastChange.action === 'attributeChanged' && 
-                                lastChange.xid === targetXid &&
-                                lastChange.value === value);
-                        if(lastChange)
-                        {
-                             lastChanges = lastChanges.filter(change => change !== lastChange);
-                             return;
-                        }   
-                        update = {
-                            userId: CS.client.name,
-                            action: 'attributeChanged',
-                            targetXid: targetXid,
-                            attribute: mutation.attributeName,
-                            value: value,
-                            timestamp: Date.now(),
-                        };
-                        break;
-
-                    case 'childList':
-
-                        mutation.removedNodes.forEach((node) => {
-                        var lastChange = lastChanges.find(lastChange =>
-                                lastChange.action === 'nodeRemoved' && 
-                                lastChange.xid === targetXid );
-                        if(lastChange)
-                        {
-                             lastChanges = lastChanges.filter(change => change !== lastChange);
-                             return;
-                        }    
-                            if (node.nodeType === Node.ELEMENT_NODE) {
-                                update = {
-                                    userId: CS.client.name,
-                                    action: 'nodeRemoved',
-                                    targetXid: node.getAttribute('xid'),
-                                    timestamp: Date.now(),
-                                };
-                                //sendToServer(update);
-                            }
-                        });
-                        break;
-
-                        mutation.addedNodes.forEach((node) => {
-
-                        var lastChange = lastChanges.find(lastChange =>
-                                lastChange.action === 'nodeAdded' && 
-                                lastChange.xid === targetXid &&
-                                lastChange.value === node.outerHtml);
-                        if(lastChange)
-                        {
-                             lastChanges = lastChanges.filter(change => change !== lastChange);
-                             return;
-                        }    
-                            if (node.nodeType === Node.ELEMENT_NODE) {
-                                update = {
-                                    userId: CS.client.name,
-                                    action: 'nodeAdded',
-                                    parentXid: targetXid,
-                                    targetXid: node.getAttribute('xid'),
-                                    html: node.outerHTML,
-                                    previousSiblingXid: node.previousElementSibling?.getAttribute('xid') || null,
-                                    nextSiblingXid: node.nextElementSibling?.getAttribute('xid') || null,
-                                    timestamp: Date.now(),
-                                };
-                                sendToServer(update);
-                            }
-                        });
-
-                    case 'characterData':
-                        var lastChange = lastChanges.find(lastChange =>
-                                lastChange.action === 'textChanged' && 
-                                lastChange.xid === targetXid &&
-                                lastChange.value === mutation.target.textContent);
-                        if(lastChange)
-                        {
-                             lastChanges = lastChanges.filter(change => change !== lastChange);
-                             return;
-                        }
-                        update = {
-                            userId: CS.client.name,
-                            action: 'textChanged',
-                            targetXid: mutation.target.parentNode?.getAttribute('xid'),
-                            newtext: mutation.target.textContent,
-                            timestamp: Date.now(),
-                        };
-                        break;
-
-                    default:
-                        console.warn('Unhandled mutation type:', mutation.type);
-                        return;
-                }
-
-                if (update) {
-                    sendToServer(update, true);
-                }
-            });
-        });
-
-        observer.observe(document, {
-            attributes: true,
-            childList: true,
-            subtree: true,
-            characterData: true,
-        });
-    }
-
-
-    // Start observing DOM mutations and capturing events
-    observeDomMutations();
     captureAllEvents();
-    console.log('Script loaded and event listeners attached.');
+    console.log('Vibe is ready');
 });
     /**
      * Serialize an event for sending to the server.
@@ -622,38 +425,29 @@ CS.onReady(() => {
     /**
      * Capture all DOM events and forward them to the server.
      */
+    const handleEvent = (event) => {
+        event.stopPropagation();
+        if (event.target instanceof Element && event.target.getAttribute) {
+            const targetXid = event.target.getAttribute('xid');
+            if (!targetXid) return;
+
+            const update = {
+                action: 'event',
+                eventData: serializeEvent(event),
+            };
+
+            // Send immediate events directly
+            const isImmediate = IMMEDIATE_EVENTS.includes(event.type);
+            sendToServer(update, isImmediate);
+        }
+    };
+
     function captureAllEvents() {
-        const handleEvent = (event) => {
-            event.stopPropagation();
-            if (event.target instanceof Element && event.target.getAttribute) {
-                const targetXid = event.target.getAttribute('xid');
-                if (!targetXid) return;
 
-                const update = {
-                    action: 'event',
-                    eventData: serializeEvent(event),
-                };
-
-                // Send immediate events directly
-                const isImmediate = IMMEDIATE_EVENTS.includes(event.type);
-                sendToServer(update, isImmediate);
-            }
-        };
-
-        const allEventTypes = Object.getOwnPropertyNames(window)
-            .filter((prop) => /^on/.test(prop))
-            .map((prop) => prop.slice(2));
-
-        Array.from(document.getElementsByTagName('*')).forEach((element) => {
-            if (handledElements.has(element)) {
-                return; // Skip elements that already have listeners
-            }
-
-            allEventTypes.forEach((eventType) => {
-                element.addEventListener(eventType, handleEvent);
-            });
-
-            handledElements.add(element); // Mark element as handled
+        window.sessionEvents.forEach((sessionEvent) => {
+            element = document.querySelector(`[xid='${sessionEvent.xid}']`);
+            element.removeEventListener(sessionEvent.eventName, handleEvent);
+            element.addEventListener(sessionEvent.eventName, handleEvent);
         });
     }
 
@@ -664,32 +458,23 @@ CS.onReady(() => {
     window.updateClientSideDom = function(update) {
         console.log(`Received update: `);
         console.log(update);
-        lastChanges.push({action: update.action, xid: update.targetXid, value: update.htmlContent });
 
-        if (update.action === 'nodeRemoved') {
+        if (update.action === 'Remove') {
             const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
+                node.remove();
             }
         }
-        if (update.action === 'nodeAdded') {
+        if (update.action === 'Render') {
             const node = document.querySelector(`[xid=""${update.targetXid}""]`);
             if (node) {
-                handledElements.delete(node);
                 node.outerHTML = update.htmlContent;
-                const newNode = document.querySelector(`[xid=""${update.targetXid}""]`);
-                
-                const comb = (n) => {
-                    n.children.forEach(c => {comb(c); handledElements.delete(c)});
-                }
-                comb(node);
             }
         }
-
 
         if (update.action === 'attributeChanged') {
             const node = document.querySelector(`[xid='${update.targetXid}']`);
             if (node) {
-                console.log(node);
                 node.setAttribute(update.attributeName, update.htmlContent);
             }
         }

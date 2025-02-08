@@ -4,7 +4,6 @@ using System.IO;
 using System.Net;
 using System.Security.Principal;
 using System.Text;
-using EonDB;
 
 namespace Vibe;
 
@@ -17,16 +16,14 @@ public class XServerContext
     public XUser User { get; set; }
     public Stream OutputStream { get; private set; }
     public XUser XUser { get; private set; }
-    public EonDB.EonDB Cache { get; private set; }
     public string Body { get; set; } = "";
     public bool HasReplied {get;set;} = false;
 
-    public XServerContext(HttpListenerContext context, Stream outputStream, XUser xUser, EonDB.EonDB cache)
+    public XServerContext(HttpListenerContext context, Stream outputStream, XUser xUser)
     {
         this.HttpListenerContext = context;
         this.OutputStream = outputStream;
         this.XUser = xUser;
-        this.Cache = cache;
     }
 
     public void Return(string response)

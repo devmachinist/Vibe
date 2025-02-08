@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Constellations", "..\Conste
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotJS", "..\DotJS\DotJS.csproj", "{6D0C9BF9-44E7-4863-9AEB-993D76D62181}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vibe.Build", "..\Vibe.Build\Vibe.Build.csproj", "{973E59AB-7B58-445C-A5EF-C2D7CFC3DB59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{6D0C9BF9-44E7-4863-9AEB-993D76D62181}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D0C9BF9-44E7-4863-9AEB-993D76D62181}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D0C9BF9-44E7-4863-9AEB-993D76D62181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{973E59AB-7B58-445C-A5EF-C2D7CFC3DB59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{973E59AB-7B58-445C-A5EF-C2D7CFC3DB59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{973E59AB-7B58-445C-A5EF-C2D7CFC3DB59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{973E59AB-7B58-445C-A5EF-C2D7CFC3DB59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
